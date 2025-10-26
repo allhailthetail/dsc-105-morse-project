@@ -3,132 +3,130 @@
 #+PROPERTY: header-args:R :session *R* :noeval :noweb yes :comments noweb :mkdirp yes
 
 * Functions:
+- Remove NAs from each Waveform:
+  #+begin_quote
+For reasons unkonwn, the .wav files sometimes contain NA values...  These needed to be removed...
+  #+end_quote
 
-- Under-the-hood implementation for plotting the waveforms:
+  #+name: wav_remove_NAs
+  #+begin_src R
+wav_remove_NAs <- function(waveform) {
+  waveform@left[!is.finite(waveform@left)] <- 0
+  return(waveform)
+}
+  #+end_src
+
+- Plot Waveforms using tuneR package:
   #+name: plot_waveform
   #+begin_src R
-  # Function makes a simple waveform plot.
-  #   Input: .wav file,
-  plot_waveform <- function(waveform, filename, save = FALSE, extension = "[.]wav") {
-      wavname <- tools::file_path_sans_ext(filename)
+# Parameters:
+#   Vector of audio files (char)
+#   output directory (char)
+#   xlim values
+# Outputs to output_dir/x.png
+plot_waveforms <- function(files, output_dir, xlim = c(0,5)) {
+  for (file in files) {
+    name <- tools::file_path_sans_ext(basename(file))
+    output_name <- paste0(output_dir, "/", name, ".png")
 
-      # Pixels per inch
-      ppi <- 300
+    tuneR::readWave(file) -> waveform
 
-      # Plot dimensions in inches
-      plot_dims <- c(5,2)
+    # Remove NA values:
+    wav_remove_NAs(waveform) -> waveform
 
-      # Plot dimensions in pixels:
-      plot_dims_px <- 300 * plot_dims
+    # Normalize:
+    waveform <- tuneR::normalize(waveform)
 
-      # set the height and width of the plot:
-      par(pin = plot_dims)
-
-      # plot the waveform:
-      waveform_plot <- tuneR::plot(waveform, main=wavname)
-
-      if (save) {
-          # Save as the same .png file:
-          pngname <-  paste(filename, ".png", sep="")
-
-          png(pngname, width=plot_dims_px[1], height=plot_dims_px[2], units="px")
-          # DEBUG:
-          tuneR::plot(waveform, main = wavname, ylim = 2.5e+09)
-          dev.off()
-
-          # DEBUG:
-          # message("Plot saved as: ", pngname)
-      }
+    # Plot: 
+    tuneR::plot(waveform, main = name, xlim = xlim)
   }
-
-  plot_waveforms <- function(waveforms, filenames, save = FALSE, extension = "[.]wav") {
-    for (i in length(waveforms)) {
-      plot_waveform(readWave(waveforms[i]), filenames[i], save, extension)
-    }
-  }
+}
   #+end_src
 
 - Fetch metadata for a single audio file:
   #+name: wav_metadata
   #+begin_src R
-  wav_metadata <- function (file) {
-    wavfile <- tuneR::readWave(file)
-    wavefile <- normalize(wavfile,
-                          unit = "32",
-                          pcm = wavfile@pcm) # Open .wav into memory
+wav_metadata <- function (file) {
+  wavfile <- tuneR::readWave(file)
+  wavefile <- normalize(wavfile,
+                        unit = "32",
+                        pcm = wavfile@pcm) # Open .wav into memory
 
-    metadata <- c(file,
-                  length(wavefile),
-                  round((length(wavefile) / wavefile@samp.rate),3),
-                  min(wavefile@left),
-                  median(wavefile@left),
-                  max(wavefile@left),
-                  wavefile@samp.rate,
-                  wavefile@stereo,
-                  wavefile@pcm,
-                  wavefile@bit)
+  metadata <- c(file,
+                length(wavefile),
+                round((length(wavefile) / wavefile@samp.rate),3),
+                min(wavefile@left),
+                median(wavefile@left),
+                max(wavefile@left),
+                wavefile@samp.rate,
+                wavefile@stereo,
+                wavefile@pcm,
+                wavefile@bit)
 
 
-    names(metadata) <- c("filename",
-                         "samples",
-                         "duration",
-                         "minAmp",
-                         "medAmp",
-                         "maxAmp",
-                         "sampleRate",
-                         "stereo",
-                         "pcm",
-                         "bitdepth")
+  names(metadata) <- c("filename",
+                       "samples",
+                       "duration",
+                       "minAmp",
+                       "medAmp",
+                       "maxAmp",
+                       "sampleRate",
+                       "stereo",
+                       "pcm",
+                       "bitdepth")
 
-    metadata
-  }
+  metadata
+}
   #+end_src
 
 - Fetch all audio data for a directory:
   #+name: wav_metadata_multi
   #+begin_src R
-  <<wav_metadata>>
+<<wav_metadata>>
 
-  wav_metadata_multi <- function (files) {
-    filename <- c() # Empty lists to hold values:
-    samples <- c()
-    duration <- c()
-    minAmp <- c()
-    medAmp <- c()
-    maxAmp <- c()
-    sampleRate <- c()
-    stereo <- c()
-    pcm <- c()
-    bitdepth <- c()
+wav_metadata_multi <- function (files) {
+  filename <- c() # Empty lists to hold values:
+  samples <- c()
+  duration <- c()
+  minAmp <- c()
+  medAmp <- c()
+  maxAmp <- c()
+  sampleRate <- c()
+  stereo <- c()
+  pcm <- c()
+  bitdepth <- c()
 
-    for(file in files) {
-      metadata <- wav_metadata(file)
-      filename <- append(filename, as.character(metadata["filename"]))
-      samples <- append(samples, as.numeric(metadata["samples"]))
-      duration <- append(duration, as.numeric(metadata["duration"]))
-      minAmp <- append(minAmp, as.numeric(metadata['minAmp']))
-      medAmp <- append(medAmp, as.numeric(metadata['medAmp']))
-      maxAmp <- append(maxAmp, as.numeric(metadata['maxAmp']))
-      sampleRate <- append(sampleRate, as.numeric(metadata["sampleRate"]))
-      stereo <- append(stereo, as.logical(metadata["stereo"]))
-      pcm <- append(pcm, as.logical(metadata["pcm"]))
-      bitdepth <- append(bitdepth, as.numeric(metadata["bitdepth"]))
-    }
-
-    ## data.frame(filename, samples, duration,
-    ##            minAmp, medAmp, maxAmp,
-    ##            sampleRate, stereo, pcm, bitdepth)
-
-    # NOTE: There's something wrong with the amplitudes, so not including those for now?
-    #       Some sort of overflow issue?
-    data.frame(filename, samples, duration,
-               sampleRate, stereo, pcm, bitdepth)
+  for(file in files) {
+    metadata <- wav_metadata(file)
+    filename <- append(filename, as.character(metadata["filename"]))
+    samples <- append(samples, as.numeric(metadata["samples"]))
+    duration <- append(duration, as.numeric(metadata["duration"]))
+    minAmp <- append(minAmp, as.numeric(metadata['minAmp']))
+    medAmp <- append(medAmp, as.numeric(metadata['medAmp']))
+    maxAmp <- append(maxAmp, as.numeric(metadata['maxAmp']))
+    sampleRate <- append(sampleRate, as.numeric(metadata["sampleRate"]))
+    stereo <- append(stereo, as.logical(metadata["stereo"]))
+    pcm <- append(pcm, as.logical(metadata["pcm"]))
+    bitdepth <- append(bitdepth, as.numeric(metadata["bitdepth"]))
   }
+
+  ## data.frame(filename, samples, duration,
+  ##            minAmp, medAmp, maxAmp,
+  ##            sampleRate, stereo, pcm, bitdepth)
+
+                                        # NOTE: There's something wrong with the amplitudes, so not including those for now?
+                                        #       Some sort of overflow issue?
+  data.frame(filename, samples, duration,
+             sampleRate, stereo, pcm, bitdepth)
+}
   #+end_src
-* Main File:
-- Assemble/Tangle the main ~functions.R~ file
+
+** Main File:
+- Assemble/Tangle the main ~functions.R~ file:
   #+begin_src R :tangle ../R/project_functions.R
-  library(tuneR)
-  <<wav_metadata_multi>>
-  <<plot_waveform>>
+library(tuneR)
+
+<<wav_remove_NAs>>
+<<wav_metadata_multi>>
+<<plot_waveform>>
   #+end_src
