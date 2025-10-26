@@ -352,8 +352,12 @@ abline(v = q3_wpm, col = "dark grey")
 So, most of our morse code data will be between 18 and 35.6 WPM...
 #+end_quote
 
-* Cleaning Up:
-- Remove plots
+* Pre-commit Clean-up:
+- Remove Generated Files
   #+begin_src bash :results silent :noeval
 rm -r ../plots  # Remove plots dir...
   #+end_src
+- Clean up Babel output blocks:
+  #+begin_example elisp
+(+org/remove-result-blocks)
+  #+end_example
