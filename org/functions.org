@@ -23,8 +23,9 @@ wav_remove_NAs <- function(waveform) {
 #   Vector of audio files (char)
 #   output directory (char)
 #   xlim values
+#   bg - background options for png (white by default)
 # Outputs to output_dir/x.png
-plot_waveforms <- function(files, output_dir, xlim = c(0,5)) {
+plot_waveforms <- function(files, output_dir, bg = "white") {
   for (file in files) {
     name <- tools::file_path_sans_ext(basename(file))
     output_name <- paste0(output_dir, "/", name, ".png")
@@ -37,8 +38,27 @@ plot_waveforms <- function(files, output_dir, xlim = c(0,5)) {
     # Normalize:
     waveform <- tuneR::normalize(waveform)
 
-    # Plot: 
-    tuneR::plot(waveform, main = name, xlim = xlim)
+    # Calculate xlims and plot_dims
+    ppi <- 200
+    xlim <- c(0, ceiling(length(waveform) / waveform@samp.rate))
+    plot_dims <- c(xlim[2], 2) * ppi
+
+    # Set up a PNG for output:
+    png(filename = output_name, width = plot_dims[1] , height = plot_dims[2], units = "px", bg = bg)
+
+    # Reduce padding x-axis:
+    par(xaxs = "i")
+    
+    # Plot:
+    tuneR::plot(waveform, main = name, xlim = xlim,
+                xlab = "Time (s)", ylab = "Normalized Amplitude",
+                col = "steelblue", lwd = 1.2)
+
+    # Add minor ticks every 0.25 seconds
+    tick_spacing <- 0.25
+    axis(side = 1, at = seq(0, xlim[2], by = tick_spacing), labels = FALSE, tcl = -0.2)
+
+    dev.off()
   }
 }
   #+end_src
