@@ -1,6 +1,6 @@
 #+title: Main File - Morse Project
 #+startup: indent overview hideblocks entitiespretty
-#+PROPERTY: header-args:R :session *R* :results output
+#+PROPERTY: header-args:R :session *R* :results output :mkdirp yes
 
 * Prerequisites
 - [[file:functions.org][Supporting Functions]]
@@ -26,6 +26,12 @@ library(tuneR)
 source("R/project_functions.R")
   #+end_src
 
+- Create directories for Plots, etc:
+  #+begin_src bash :results silent
+mkdir -p ../plots/general
+mkdir -p ../plots/waveforms/initial
+  #+end_src
+
 * Step 1: Exploratory Data Analysis:
 - First, let's see how many files we're going to process and get some basic information about them:
   #+begin_src R
@@ -36,9 +42,6 @@ list.files(audio_files_path,
 length(audio_files) # number of files to analyze...
   #+end_src
 
-  #+RESULTS:
-  : [1] 200
-
 - Gathering basic metadata:
   #+begin_src R
 basic_metadata <- wav_metadata_multi(audio_files)
@@ -47,20 +50,6 @@ summary(basic_metadata)
 
 head(basic_metadata,2)
   #+end_src
-
-  #+RESULTS:
-  #+begin_example
-  filename            samples          duration        sampleRate     stereo          pcm             bitdepth
-   Length:200         Min.   : 37327   Min.   : 4.666   Min.   :8000   Mode :logical   Mode:logical   Min.   :32
-   Class :character   1st Qu.: 53932   1st Qu.: 6.742   1st Qu.:8000   FALSE:200       TRUE:200       1st Qu.:32
-   Mode  :character   Median : 73026   Median : 9.129   Median :8000                                  Median :32
-                      Mean   : 86519   Mean   :10.815   Mean   :8000                                  Mean   :32
-                      3rd Qu.:105775   3rd Qu.:13.222   3rd Qu.:8000                                  3rd Qu.:32
-                      Max.   :216967   Max.   :27.121   Max.   :8000                                  Max.   :32
-  filename samples duration sampleRate stereo  pcm bitdepth
-  1 ./data/cw001.wav  139046   17.381       8000  FALSE TRUE       32
-  2 ./data/cw002.wav   92953   11.619       8000  FALSE TRUE       32
-  #+end_example
 
   #+begin_quote
   - So, there's not a lot to see, but already we can draw some conclusions:
@@ -293,12 +282,18 @@ CW003: G1FNCKUDZ63TSIJ5QH47
   #+end_quote
 
 - Boxplot of the durations:
-  #+begin_src R :file ../plots/general/dur-box.png :results file graphics :width 600 :height 400
-boxplot(x = basic_metadata$duration, main = "File Durations (s)")
+  #+begin_src R :file plots/general/dur-hist.png :results silent graphics
+summary_duration <- summary(basic_metadata$duration)
+mean_text <- paste("Mean:", round(summary_duration["Mean"], 2), "sec")
+
+hist(x = basic_metadata$duration, xlab = "seconds", main = "Audio File Durations in Seconds", col = "lightblue")
+abline(v = summary_duration["Mean"], col = "red")
+abline(v = summary_duration["1st Qu."], col = "dark grey")
+abline(v = summary_duration["3rd Qu."], col = "dark grey")
+text(x = 20, y = 40, labels = mean_text, col = "black", cex = 1.5)
   #+end_src
 
-  #+RESULTS:
-  [[file:../plots/general/dur-box.png]]
+[[file:~/playground/morse-project/plots/general/dur-hist.png][Graphic - File Durations]]
 
 #+begin_quote
 Remember, this is a graphical representation of what summary already says:
@@ -317,67 +312,48 @@ above_q3 <- basic_metadata$duration > q3
 
 basic_metadata[above_q3,]
 
-nchar(basic_metadata$prediction[27])
+numChars <- nchar(basic_metadata$prediction[27])
+numChars
   #+end_src
-
-  #+RESULTS:
-  #+begin_example
-  filename samples duration sampleRate stereo  pcm bitdepth           prediction
-  1   ./data/cw001.wav  139046   17.381       8000  FALSE TRUE       32                 <NA>
-  6   ./data/cw006.wav  113453   14.182       8000  FALSE TRUE       32                 <NA>
-  7   ./data/cw007.wav  167199   20.900       8000  FALSE TRUE       32                 <NA>
-  12  ./data/cw012.wav  176165   22.021       8000  FALSE TRUE       32                 <NA>
-  27  ./data/cw027.wav  162155   20.269       8000  FALSE TRUE       32 63BTNYH7OJ7XKBNYOV49
-  31  ./data/cw031.wav  179885   22.486       8000  FALSE TRUE       32                 <NA>
-  37  ./data/cw037.wav  180009   22.501       8000  FALSE TRUE       32 R2DX08BDJE46A0NU6ZT3
-  38  ./data/cw038.wav  114227   14.278       8000  FALSE TRUE       32                 <NA>
-  43  ./data/cw043.wav  112393   14.049       8000  FALSE TRUE       32                 <NA>
-  47  ./data/cw047.wav  195784   24.473       8000  FALSE TRUE       32 EZRXQHXYJZ4AIZ15AFFM
-  48  ./data/cw048.wav  154264   19.283       8000  FALSE TRUE       32                 <NA>
-  49  ./data/cw049.wav  174930   21.866       8000  FALSE TRUE       32 GWII2VNNDB5U74ZPYUUC
-  55  ./data/cw055.wav  113375   14.172       8000  FALSE TRUE       32                 <NA>
-  60  ./data/cw060.wav  106961   13.370       8000  FALSE TRUE       32                 <NA>
-  61  ./data/cw061.wav  152182   19.023       8000  FALSE TRUE       32                 <NA>
-  66  ./data/cw066.wav  216967   27.121       8000  FALSE TRUE       32                 <NA>
-  69  ./data/cw069.wav  114991   14.374       8000  FALSE TRUE       32                 <NA>
-  78  ./data/cw078.wav  205753   25.719       8000  FALSE TRUE       32                 <NA>
-  80  ./data/cw080.wav  165545   20.693       8000  FALSE TRUE       32                 <NA>
-  84  ./data/cw084.wav  119448   14.931       8000  FALSE TRUE       32 VS7FCHNSK6UBYHBG7Q6A
-  86  ./data/cw086.wav  109938   13.742       8000  FALSE TRUE       32                 <NA>
-  88  ./data/cw088.wav  131960   16.495       8000  FALSE TRUE       32                 <NA>
-  90  ./data/cw090.wav  209230   26.154       8000  FALSE TRUE       32 Y3POCL0TOB48OA23PP4X
-  93  ./data/cw093.wav  114054   14.257       8000  FALSE TRUE       32                 <NA>
-  97  ./data/cw097.wav  144100   18.012       8000  FALSE TRUE       32                 <NA>
-  99  ./data/cw099.wav  194091   24.261       8000  FALSE TRUE       32 8M9AGRKOW33JY9JC6P9E
-  104 ./data/cw104.wav  117379   14.672       8000  FALSE TRUE       32                 <NA>
-  106 ./data/cw106.wav  143592   17.949       8000  FALSE TRUE       32                 <NA>
-  110 ./data/cw110.wav  134996   16.875       8000  FALSE TRUE       32                 <NA>
-  112 ./data/cw112.wav  201698   25.212       8000  FALSE TRUE       32                 <NA>
-  114 ./data/cw114.wav  204649   25.581       8000  FALSE TRUE       32                 <NA>
-  117 ./data/cw117.wav  140391   17.549       8000  FALSE TRUE       32                 <NA>
-  118 ./data/cw118.wav  124486   15.561       8000  FALSE TRUE       32 AOSXW13N9RQZ7CRZ7MJS
-  124 ./data/cw124.wav  199361   24.920       8000  FALSE TRUE       32 H6I4HVYJH8DFEEPM4PCT
-  133 ./data/cw133.wav  129287   16.161       8000  FALSE TRUE       32                 <NA>
-  136 ./data/cw136.wav  112389   14.049       8000  FALSE TRUE       32                 <NA>
-  137 ./data/cw137.wav  181299   22.662       8000  FALSE TRUE       32                 <NA>
-  139 ./data/cw139.wav  136007   17.001       8000  FALSE TRUE       32                 <NA>
-  142 ./data/cw142.wav  136816   17.102       8000  FALSE TRUE       32                 <NA>
-  160 ./data/cw160.wav  135047   16.881       8000  FALSE TRUE       32                 <NA>
-  163 ./data/cw163.wav  130515   16.314       8000  FALSE TRUE       32                 <NA>
-  164 ./data/cw164.wav  186423   23.303       8000  FALSE TRUE       32                 <NA>
-  173 ./data/cw173.wav  171181   21.398       8000  FALSE TRUE       32                 <NA>
-  175 ./data/cw175.wav  116567   14.571       8000  FALSE TRUE       32 03IWB4JYRUE2LBPMN5X1
-  178 ./data/cw178.wav  107099   13.387       8000  FALSE TRUE       32 1UPUX15HK586V8Q1DK4W
-  182 ./data/cw182.wav  113137   14.142       8000  FALSE TRUE       32                 <NA>
-  184 ./data/cw184.wav  125844   15.730       8000  FALSE TRUE       32                 <NA>
-  189 ./data/cw189.wav  135035   16.879       8000  FALSE TRUE       32                 <NA>
-  194 ./data/cw194.wav  106076   13.259       8000  FALSE TRUE       32 FJQSR2P1Y2T2XU5RK63T
-  195 ./data/cw195.wav  131475   16.434       8000  FALSE TRUE       32                 <NA>
-  [1] 20
-  #+end_example
 
 #+begin_quote
 Actually, I do see a pattern now that the data is visualized and in a table...
 Conveniently for us, every message seems to contain 20 characters. That means that we can get a good estimate of
 the words per minute for each file with no extra effort!! Perfect for training a model...
+
+WPM = (60s x numChars/5)/time
+WPM = 12 x numChars / time
 #+end_quote
+
+- Let's add Words Per Minute to the Metadata:
+  #+begin_src R
+approx_wpm <- round((12 * numChars) / basic_metadata$duration, 2)
+basic_metadata$approx_wpm <- approx_wpm
+head(basic_metadata)
+summary(basic_metadata$approx_wpm)
+  #+end_src
+
+#+begin_src R :file plots/general/wpm-approx.png :results silent graphics
+# And, we'll visualize that as well...
+summary_wpm <- summary(basic_metadata$approx_wpm)
+mean_wpm <- summary_wpm["Mean"]
+q1_wpm <- summary_wpm["1st Qu."]
+q3_wpm <- summary_wpm["3rd Qu."]
+
+hist(x = basic_metadata$approx_wpm, xlab = "Words per Minute", main = "Estimated WPM values for Audio Clips", col = "lightblue")
+abline(v = mean_wpm, col = "red")
+abline(v = q1_wpm, col = "dark grey")
+abline(v = q3_wpm, col = "dark grey")
+#+end_src
+
+[[file:~/playground/morse-project/plots/general/wpm-approx.png][Graphic - Approximate WPMs]]
+
+#+begin_quote
+So, most of our morse code data will be between 18 and 35.6 WPM...
+#+end_quote
+
+* Cleaning Up:
+- Remove plots
+  #+begin_src bash :results silent :noeval
+rm -r ../plots  # Remove plots dir...
+  #+end_src
