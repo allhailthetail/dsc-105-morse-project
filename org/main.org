@@ -1,0 +1,91 @@
+#+title: main
+#+startup: indent overview hideblocks entitiespretty
+#+PROPERTY: header-args:R :session *R* :results output
+
+* Prerequisites
+- [[file:functions.org][Supporting Functions]]
+
+- *Configure the working directory:*
+  #+begin_quote
+  The project is assuming that R's working directory is the repository root. For simplicity, I set this up
+  as an environment variable on my system, ~MORSE_ROOT~ and pointed R that as shown...
+  #+end_quote
+
+  #+begin_src R :results silent
+  # Get and set the working directory:
+  Sys.getenv("MORSE_ROOT") -> projectRoot
+
+  setwd(projectRoot)
+  getwd()
+  #+end_src
+
+  #+RESULTS:
+
+- The following dependencies need to be installed so that the audio processing can take place:
+  #+name: imports
+  #+begin_src R :results silent
+  library(sonicscrewdriver)
+  library(tuneR)
+  source("R/project_functions.R")
+  #+end_src
+
+* Exploratory Data Analysis:
+- First, let's see how many files we're going to process and get some basic information about them:
+  #+begin_src R
+  "./data" -> audio_files_path
+  list.files(audio_files_path,
+             full.names=TRUE) -> audio_files # this is a vec of all our audio files
+
+  length(audio_files) # number of files to analyze...
+  #+end_src
+
+  #+RESULTS:
+  : [1] 200
+
+- Gathering basic metadata:
+  #+begin_src R
+  basic_metadata <- wav_metadata_multi(audio_files)
+
+  summary(basic_metadata)
+
+  head(basic_metadata,2)
+  #+end_src
+
+  #+RESULTS:
+  #+begin_example
+  filename            samples          duration        sampleRate     stereo          pcm             bitdepth
+   Length:200         Min.   : 37327   Min.   : 4.666   Min.   :8000   Mode :logical   Mode:logical   Min.   :32
+   Class :character   1st Qu.: 53932   1st Qu.: 6.742   1st Qu.:8000   FALSE:200       TRUE:200       1st Qu.:32
+   Mode  :character   Median : 73026   Median : 9.129   Median :8000                                  Median :32
+                      Mean   : 86519   Mean   :10.815   Mean   :8000                                  Mean   :32
+                      3rd Qu.:105775   3rd Qu.:13.222   3rd Qu.:8000                                  3rd Qu.:32
+                      Max.   :216967   Max.   :27.121   Max.   :8000                                  Max.   :32
+  filename samples duration sampleRate stereo  pcm bitdepth
+  1 ./data/cw001.wav  139046   17.381       8000  FALSE TRUE       32
+  2 ./data/cw002.wav   92953   11.619       8000  FALSE TRUE       32
+  #+end_example
+
+
+#+begin_quote
+So, there's not a lot to see, but already we can draw some conclusions:
+1. We're dealing with approximately 36 minutes worth of data in total.
+2. All of it is mono audio, so we don't need to average the two channels
+3. There are more samples per file than would be efficient to graph as individual points,
+   Luckily, tuneR has a special plot function that handles this...
+#+end_quote
+
+  - So, let's get a basic idea of what the files look like with some plots:
+
+    #+begin_src R
+    titles <- tools::file_path_sans_ext(basename(basic_metadata$filename))
+    initial_png_names <-  paste0("./plots/waveforms/initial/", titles)
+
+    plot_waveform(readWave(audio_files[4]), filename=initial_png_names[4], save=TRUE)
+    ## for (i in 1:length(audio_files)) {
+    ##   plot_waveform(readWave(audio_files[i]), filename=initial_png_names[i], save=TRUE)
+    ## }
+
+    #+end_src
+
+    #+RESULTS:
+    : Error in plot.window(...) (from project_functions.R#95) : need finite 'ylim' values
