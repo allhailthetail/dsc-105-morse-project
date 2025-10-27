@@ -16,6 +16,27 @@ wav_remove_NAs <- function(waveform) {
 }
   #+end_src
 
+- Mean amplitude / roughness calculations
+  #+name: rms_amplitudes
+  #+begin_src R
+rms_amplitudes <- function(files) {
+  # vector to hold the mean amplitudes
+  rms_amps <- c()
+
+  # Loop over the files and find the amplitudes
+  for (file in files){
+    # Normalize...
+    tuneR::readWave(file) -> waveform
+    wav_remove_NAs(waveform) -> waveform
+    waveform_n <- tuneR::normalize(waveform, pcm = FALSE, unit = "1", center = TRUE)
+
+    # Calculate the mean amplitude
+    rms_amps <- append(rms_amps, rms(waveform_n@left))
+  }
+  return(rms_amps)
+}
+  #+end_src
+
 - Plot Waveforms using tuneR package:
   #+name: plot_waveform
   #+begin_src R
@@ -36,11 +57,11 @@ plot_waveforms <- function(files, output_dir, bg = "white") {
     wav_remove_NAs(waveform) -> waveform
 
     # Normalize:
-    waveform <- tuneR::normalize(waveform)
+    waveform_n <- tuneR::normalize(waveform, pcm = FALSE, unit = "1", center = TRUE)
 
     # Calculate xlims and plot_dims
     ppi <- 200
-    xlim <- c(0, ceiling(length(waveform) / waveform@samp.rate))
+    xlim <- c(0, ceiling(length(waveform_n) / waveform_n@samp.rate))
     plot_dims <- c(xlim[2], 2) * ppi
 
     # Set up a PNG for output:
@@ -50,7 +71,7 @@ plot_waveforms <- function(files, output_dir, bg = "white") {
     par(xaxs = "i")
     
     # Plot:
-    tuneR::plot(waveform, main = name, xlim = xlim,
+    tuneR::plot(waveform_n, main = name, xlim = xlim,
                 xlab = "Time (s)", ylab = "Normalized Amplitude",
                 col = "steelblue", lwd = 1.2)
 
@@ -69,7 +90,7 @@ plot_waveforms <- function(files, output_dir, bg = "white") {
 wav_metadata <- function (file) {
   wavfile <- tuneR::readWave(file)
   wavefile <- normalize(wavfile,
-                        unit = "32",
+                        unit = "8",
                         pcm = wavfile@pcm) # Open .wav into memory
 
   metadata <- c(file,
@@ -145,7 +166,9 @@ wav_metadata_multi <- function (files) {
 - Assemble/Tangle the main ~functions.R~ file:
   #+begin_src R :tangle ../R/project_functions.R
 library(tuneR)
+library(seewave)
 
+<<rms_amplitudes>>
 <<wav_remove_NAs>>
 <<wav_metadata_multi>>
 <<plot_waveform>>
