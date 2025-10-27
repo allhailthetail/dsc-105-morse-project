@@ -6,3 +6,6 @@ tmp/
 # Project-specific Ignores:
 R/
 plots/
+
+# R-specific
+.Rhistory
