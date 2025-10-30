@@ -28,9 +28,15 @@ source("R/project_functions.R")
 
 - Create directories for Plots, etc:
   #+begin_src bash :results silent
-mkdir -p ../plots/general
-mkdir -p ../plots/waveforms/initial
-mkdir -p ../csv/
+mkdir -p ../plots/general            # to store plots...
+mkdir -p ../plots/waveforms/initial  # to store initial waveforms
+mkdir -p ../R                        # to store tangled functions:
+mkdir -p ../csv/                     # to store generated CSVs.
+  #+end_src
+
+- Tangle functions in =functions.org=
+  #+begin_src emacs-lisp
+(org-babel-tangle-file "functions.org")
   #+end_src
 
 * Step 1: Exploratory Data Analysis:
@@ -395,6 +401,7 @@ detailed_analysis[detailed_analysis$rms_amplitude == high_rms,]
   #+begin_src bash :results silent :noeval
 rm -r ../plots  # Remove plots dir...
 rm -r ../csv    # Remove csv data
+rm -r ../R
   #+end_src
 - Clean up Babel output blocks:
   #+begin_example elisp
