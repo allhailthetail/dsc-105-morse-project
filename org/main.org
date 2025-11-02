@@ -5,6 +5,11 @@
 * Prerequisites
 - [[file:functions.org][Supporting Functions]]
 
+- Org tweaks:
+  #+begin_src elisp
+  (org-display-inline-images t)
+  #+end_src
+
 - *Configure the working directory:*
   #+begin_quote
   The project is assuming that R's working directory is the repository root. For simplicity, I set this up
@@ -68,227 +73,85 @@ head(basic_metadata,2)
 
 - Filling in Known Predictions:
   - Handy Regex: (\d+),\s*(\w*) -> basic_metadata$prediction[\1] <- "\2"
-  #+names: metadata - add predictions
-  #+begin_src R :results silent
-basic_metadata$prediction[1] <- ""
-basic_metadata$prediction[2] <- ""
-basic_metadata$prediction[3] <- ""
-basic_metadata$prediction[4] <- ""
-basic_metadata$prediction[5] <- "FEFOFQUHYNZ3WONZRETF"
-basic_metadata$prediction[6] <- ""
-basic_metadata$prediction[7] <- ""
-basic_metadata$prediction[8] <- ""
-basic_metadata$prediction[9] <- "5NITCM6O7M3VYTFUOLGB"
-basic_metadata$prediction[10] <- ""
-basic_metadata$prediction[11] <- ""
-basic_metadata$prediction[12] <- ""
-basic_metadata$prediction[13] <- ""
-basic_metadata$prediction[14] <- ""
-basic_metadata$prediction[15] <- ""
-basic_metadata$prediction[16] <- ""
-basic_metadata$prediction[17] <- ""
-basic_metadata$prediction[18] <- "NPAIUS139K2A5T2IQZY9"
-basic_metadata$prediction[19] <- ""
-basic_metadata$prediction[20] <- ""
-basic_metadata$prediction[21] <- ""
-basic_metadata$prediction[22] <- "TF5E6V73PCP3C18OQIQ8"
-basic_metadata$prediction[23] <- ""
-basic_metadata$prediction[24] <- ""
-basic_metadata$prediction[25] <- "YQ4CBEH852FAR5AGTBS2"
-basic_metadata$prediction[26] <- "AVXDKKCKEB1EX8QABF7C"
-basic_metadata$prediction[27] <- "63BTNYH7OJ7XKBNYOV49"
-basic_metadata$prediction[28] <- "LGYI857RG7FXVFVGB7E3"
-basic_metadata$prediction[29] <- ""
-basic_metadata$prediction[30] <- ""
-basic_metadata$prediction[31] <- ""
-basic_metadata$prediction[32] <- ""
-basic_metadata$prediction[33] <- ""
-basic_metadata$prediction[34] <- ""
-basic_metadata$prediction[35] <- "8BKR52AIQ3SPVHAM2T2C"
-basic_metadata$prediction[36] <- ""
-basic_metadata$prediction[37] <- "R2DX08BDJE46A0NU6ZT3"
-basic_metadata$prediction[38] <- ""
-basic_metadata$prediction[39] <- ""
-basic_metadata$prediction[40] <- ""
-basic_metadata$prediction[41] <- "N5DAV420EZMYJ86MM2RF"
-basic_metadata$prediction[42] <- ""
-basic_metadata$prediction[43] <- ""
-basic_metadata$prediction[44] <- "BCYCKRK4YC1ACGOQ1771"
-basic_metadata$prediction[45] <- "89E536S85K7696K4824L"
-basic_metadata$prediction[46] <- ""
-basic_metadata$prediction[47] <- "EZRXQHXYJZ4AIZ15AFFM"
-basic_metadata$prediction[48] <- ""
-basic_metadata$prediction[49] <- "GWII2VNNDB5U74ZPYUUC"
-basic_metadata$prediction[50] <- "7KYQ1KSW9U7KWW9BW9CD"
-basic_metadata$prediction[51] <- ""
-basic_metadata$prediction[52] <- ""
-basic_metadata$prediction[53] <- "ET98RNOX26UAX013JLES"
-basic_metadata$prediction[54] <- ""
-basic_metadata$prediction[55] <- ""
-basic_metadata$prediction[56] <- ""
-basic_metadata$prediction[57] <- ""
-basic_metadata$prediction[58] <- ""
-basic_metadata$prediction[59] <- ""
-basic_metadata$prediction[60] <- ""
-basic_metadata$prediction[61] <- ""
-basic_metadata$prediction[62] <- "YWBRAOI6HLSTYKMIFQ8E"
-basic_metadata$prediction[63] <- ""
-basic_metadata$prediction[64] <- ""
-basic_metadata$prediction[65] <- ""
-basic_metadata$prediction[66] <- ""
-basic_metadata$prediction[67] <- ""
-basic_metadata$prediction[68] <- ""
-basic_metadata$prediction[69] <- ""
-basic_metadata$prediction[70] <- ""
-basic_metadata$prediction[71] <- "GKYGS8K1MQCHD15NCV9H"
-basic_metadata$prediction[72] <- "SIJP60T90447282IAP0G"
-basic_metadata$prediction[73] <- ""
-basic_metadata$prediction[74] <- "K7OOLNPK60WUC5PC6L0X"
-basic_metadata$prediction[75] <- ""
-basic_metadata$prediction[76] <- "KWOA6I12TE85P59HY272"
-basic_metadata$prediction[77] <- ""
-basic_metadata$prediction[78] <- ""
-basic_metadata$prediction[79] <- ""
-basic_metadata$prediction[80] <- ""
-basic_metadata$prediction[81] <- ""
-basic_metadata$prediction[82] <- "B9MBJBCG088X5HEQFYBP"
-basic_metadata$prediction[83] <- ""
-basic_metadata$prediction[84] <- "VS7FCHNSK6UBYHBG7Q6A"
-basic_metadata$prediction[85] <- ""
-basic_metadata$prediction[86] <- ""
-basic_metadata$prediction[87] <- ""
-basic_metadata$prediction[88] <- ""
-basic_metadata$prediction[89] <- ""
-basic_metadata$prediction[90] <- "Y3POCL0TOB48OA23PP4X"
-basic_metadata$prediction[91] <- "TUB8FKBT1F0HDJC4E5JJ"
-basic_metadata$prediction[92] <- ""
-basic_metadata$prediction[93] <- ""
-basic_metadata$prediction[94] <- ""
-basic_metadata$prediction[95] <- "TJ9DYTTIC1IEGOGDGKBG"
-basic_metadata$prediction[96] <- "FWRUHOKDX83UY4CXPGKT"
-basic_metadata$prediction[97] <- ""
-basic_metadata$prediction[98] <- ""
-basic_metadata$prediction[99] <- "8M9AGRKOW33JY9JC6P9E"
-basic_metadata$prediction[100] <- ""
-basic_metadata$prediction[101] <- ""
-basic_metadata$prediction[102] <- ""
-basic_metadata$prediction[103] <- ""
-basic_metadata$prediction[104] <- ""
-basic_metadata$prediction[105] <- ""
-basic_metadata$prediction[106] <- ""
-basic_metadata$prediction[107] <- ""
-basic_metadata$prediction[108] <- ""
-basic_metadata$prediction[109] <- ""
-basic_metadata$prediction[110] <- ""
-basic_metadata$prediction[111] <- "EJGRJWSOJBATCY9YF93R"
-basic_metadata$prediction[112] <- ""
-basic_metadata$prediction[113] <- ""
-basic_metadata$prediction[114] <- ""
-basic_metadata$prediction[115] <- "YYSH3K45WAXIY7EZHKIE"
-basic_metadata$prediction[116] <- ""
-basic_metadata$prediction[117] <- ""
-basic_metadata$prediction[118] <- "AOSXW13N9RQZ7CRZ7MJS"
-basic_metadata$prediction[119] <- "ZDPTZFSGG1ZQEOK4ORRB"
-basic_metadata$prediction[120] <- ""
-basic_metadata$prediction[121] <- ""
-basic_metadata$prediction[122] <- ""
-basic_metadata$prediction[123] <- "OPIB1TZHIT8QNYBZ1P9O"
-basic_metadata$prediction[124] <- "H6I4HVYJH8DFEEPM4PCT"
-basic_metadata$prediction[125] <- ""
-basic_metadata$prediction[126] <- ""
-basic_metadata$prediction[127] <- ""
-basic_metadata$prediction[128] <- "XW8XLJ2K9O5V12LLT4Q9"
-basic_metadata$prediction[129] <- "P299MVR0XGG51UWPSNKR"
-basic_metadata$prediction[130] <- "0JOJRS92O0TPMJQDTNHC"
-basic_metadata$prediction[131] <- ""
-basic_metadata$prediction[132] <- ""
-basic_metadata$prediction[133] <- ""
-basic_metadata$prediction[134] <- ""
-basic_metadata$prediction[135] <- ""
-basic_metadata$prediction[136] <- ""
-basic_metadata$prediction[137] <- ""
-basic_metadata$prediction[138] <- ""
-basic_metadata$prediction[139] <- ""
-basic_metadata$prediction[140] <- ""
-basic_metadata$prediction[141] <- ""
-basic_metadata$prediction[142] <- ""
-basic_metadata$prediction[143] <- ""
-basic_metadata$prediction[144] <- ""
-basic_metadata$prediction[145] <- ""
-basic_metadata$prediction[146] <- ""
-basic_metadata$prediction[147] <- ""
-basic_metadata$prediction[148] <- "RS00DAAA04UVGG3WALGS"
-basic_metadata$prediction[149] <- "A9N0QQ8IFFZ0Z89LYNFI"
-basic_metadata$prediction[150] <- ""
-basic_metadata$prediction[151] <- "K3ZC88XILS6Y9WPJWAUI"
-basic_metadata$prediction[152] <- "WMDQP6JCDDU6U8LEWVZY"
-basic_metadata$prediction[153] <- ""
-basic_metadata$prediction[154] <- ""
-basic_metadata$prediction[155] <- "6H2NCKWC0HFH00JGYY7R"
-basic_metadata$prediction[156] <- ""
-basic_metadata$prediction[157] <- "3XIVCTHI5M7QAWIS7UL0"
-basic_metadata$prediction[158] <- "JO0G95ECU0SBO7N2QOVD"
-basic_metadata$prediction[159] <- "LUS34SYEYV7H1CNKXF8M"
-basic_metadata$prediction[160] <- ""
-basic_metadata$prediction[161] <- "7F2PQX5LVC1XV9ZYTRR3"
-basic_metadata$prediction[162] <- ""
-basic_metadata$prediction[163] <- ""
-basic_metadata$prediction[164] <- ""
-basic_metadata$prediction[165] <- "0S8PT84E5DU0ZMX4OD91"
-basic_metadata$prediction[166] <- "216PENQ5527G3YQ4Z4DE"
-basic_metadata$prediction[167] <- "QMWHZO5E67APYHM3JL5M"
-basic_metadata$prediction[168] <- ""
-basic_metadata$prediction[169] <- ""
-basic_metadata$prediction[170] <- ""
-basic_metadata$prediction[171] <- "W10IQ4YD09M01A8WJOHP"
-basic_metadata$prediction[172] <- ""
-basic_metadata$prediction[173] <- ""
-basic_metadata$prediction[174] <- ""
-basic_metadata$prediction[175] <- "03IWB4JYRUE2LBPMN5X1"
-basic_metadata$prediction[176] <- "E8G8V81FIYVERSUPKPJY"
-basic_metadata$prediction[177] <- ""
-basic_metadata$prediction[178] <- "1UPUX15HK586V8Q1DK4W"
-basic_metadata$prediction[179] <- ""
-basic_metadata$prediction[180] <- "PG8BUHZGV31HO9YMICWC"
-basic_metadata$prediction[181] <- ""
-basic_metadata$prediction[182] <- ""
-basic_metadata$prediction[183] <- ""
-basic_metadata$prediction[184] <- ""
-basic_metadata$prediction[185] <- ""
-basic_metadata$prediction[186] <- ""
-basic_metadata$prediction[187] <- ""
-basic_metadata$prediction[188] <- "YQYXB1LM2SNGPBTHHJ1D"
-basic_metadata$prediction[189] <- ""
-basic_metadata$prediction[190] <- ""
-basic_metadata$prediction[191] <- ""
-basic_metadata$prediction[192] <- ""
-basic_metadata$prediction[193] <- ""
-basic_metadata$prediction[194] <- "FJQSR2P1Y2T2XU5RK63T"
-basic_metadata$prediction[195] <- ""
-basic_metadata$prediction[196] <- ""
-basic_metadata$prediction[197] <- ""
-basic_metadata$prediction[198] <- ""
-basic_metadata$prediction[199] <- "ZEA2Y4H4NX6JST0J3IY8"
-basic_metadata$prediction[200] <- ""
+    #+names: metadata - add predictions
+    #+begin_src R :results silent
+    basic_metadata$prediction <- NA
 
-basic_metadata$prediction[basic_metadata$prediction == ""] <- NA
-  #+end_src
+    basic_metadata$prediction[5] <- "FEFOFQUHYNZ3WONZRETF"
+    basic_metadata$prediction[9] <- "5NITCM6O7M3VYTFUOLGB"
+    basic_metadata$prediction[18] <- "NPAIUS139K2A5T2IQZY9"
+    basic_metadata$prediction[22] <- "TF5E6V73PCP3C18OQIQ8"
+    basic_metadata$prediction[25] <- "YQ4CBEH852FAR5AGTBS2"
+    basic_metadata$prediction[26] <- "AVXDKKCKEB1EX8QABF7C"
+    basic_metadata$prediction[27] <- "63BTNYH7OJ7XKBNYOV49"
+    basic_metadata$prediction[28] <- "LGYI857RG7FXVFVGB7E3"
+    basic_metadata$prediction[35] <- "8BKR52AIQ3SPVHAM2T2C"
+    basic_metadata$prediction[37] <- "R2DX08BDJE46A0NU6ZT3"
+    basic_metadata$prediction[41] <- "N5DAV420EZMYJ86MM2RF"
+    basic_metadata$prediction[44] <- "BCYCKRK4YC1ACGOQ1771"
+    basic_metadata$prediction[45] <- "89E536S85K7696K4824L"
+    basic_metadata$prediction[47] <- "EZRXQHXYJZ4AIZ15AFFM"
+    basic_metadata$prediction[49] <- "GWII2VNNDB5U74ZPYUUC"
+    basic_metadata$prediction[50] <- "7KYQ1KSW9U7KWW9BW9CD"
+    basic_metadata$prediction[53] <- "ET98RNOX26UAX013JLES"
+    basic_metadata$prediction[62] <- "YWBRAOI6HLSTYKMIFQ8E"
+    basic_metadata$prediction[71] <- "GKYGS8K1MQCHD15NCV9H"
+    basic_metadata$prediction[72] <- "SIJP60T90447282IAP0G"
+    basic_metadata$prediction[74] <- "K7OOLNPK60WUC5PC6L0X"
+    basic_metadata$prediction[76] <- "KWOA6I12TE85P59HY272"
+    basic_metadata$prediction[82] <- "B9MBJBCG088X5HEQFYBP"
+    basic_metadata$prediction[84] <- "VS7FCHNSK6UBYHBG7Q6A"
+    basic_metadata$prediction[90] <- "Y3POCL0TOB48OA23PP4X"
+    basic_metadata$prediction[91] <- "TUB8FKBT1F0HDJC4E5JJ"
+    basic_metadata$prediction[95] <- "TJ9DYTTIC1IEGOGDGKBG"
+    basic_metadata$prediction[96] <- "FWRUHOKDX83UY4CXPGKT"
+    basic_metadata$prediction[99] <- "8M9AGRKOW33JY9JC6P9E"
+    basic_metadata$prediction[111] <- "EJGRJWSOJBATCY9YF93R"
+    basic_metadata$prediction[115] <- "YYSH3K45WAXIY7EZHKIE"
+    basic_metadata$prediction[118] <- "AOSXW13N9RQZ7CRZ7MJS"
+    basic_metadata$prediction[119] <- "ZDPTZFSGG1ZQEOK4ORRB"
+    basic_metadata$prediction[123] <- "OPIB1TZHIT8QNYBZ1P9O"
+    basic_metadata$prediction[124] <- "H6I4HVYJH8DFEEPM4PCT"
+    basic_metadata$prediction[128] <- "XW8XLJ2K9O5V12LLT4Q9"
+    basic_metadata$prediction[129] <- "P299MVR0XGG51UWPSNKR"
+    basic_metadata$prediction[130] <- "0JOJRS92O0TPMJQDTNHC"
+    basic_metadata$prediction[148] <- "RS00DAAA04UVGG3WALGS"
+    basic_metadata$prediction[149] <- "A9N0QQ8IFFZ0Z89LYNFI"
+    basic_metadata$prediction[151] <- "K3ZC88XILS6Y9WPJWAUI"
+    basic_metadata$prediction[152] <- "WMDQP6JCDDU6U8LEWVZY"
+    basic_metadata$prediction[155] <- "6H2NCKWC0HFH00JGYY7R"
+    basic_metadata$prediction[157] <- "3XIVCTHI5M7QAWIS7UL0"
+    basic_metadata$prediction[158] <- "JO0G95ECU0SBO7N2QOVD"
+    basic_metadata$prediction[159] <- "LUS34SYEYV7H1CNKXF8M"
+    basic_metadata$prediction[161] <- "7F2PQX5LVC1XV9ZYTRR3"
+    basic_metadata$prediction[165] <- "0S8PT84E5DU0ZMX4OD91"
+    basic_metadata$prediction[166] <- "216PENQ5527G3YQ4Z4DE"
+    basic_metadata$prediction[167] <- "QMWHZO5E67APYHM3JL5M"
+    basic_metadata$prediction[171] <- "W10IQ4YD09M01A8WJOHP"
+    basic_metadata$prediction[175] <- "03IWB4JYRUE2LBPMN5X1"
+    basic_metadata$prediction[176] <- "E8G8V81FIYVERSUPKPJY"
+    basic_metadata$prediction[178] <- "1UPUX15HK586V8Q1DK4W"
+    basic_metadata$prediction[180] <- "PG8BUHZGV31HO9YMICWC"
+    basic_metadata$prediction[188] <- "YQYXB1LM2SNGPBTHHJ1D"
+    basic_metadata$prediction[194] <- "FJQSR2P1Y2T2XU5RK63T"
+    basic_metadata$prediction[199] <- "ZEA2Y4H4NX6JST0J3IY8"
+    #+end_src
 
 - So, let's get a basic idea of what the files look like with some plots:
   - [[file:~/playground/morse-project/plots/waveforms/initial/][Output Directory]]
-  #+begin_src R :results silent
-audio_files <- basic_metadata$filename
-plot_waveforms(audio_files, "./plots/waveforms/initial")
-  #+end_src
+    #+begin_src R :results silent
+  audio_files <- basic_metadata$filename
+  plot_waveforms(audio_files, "./plots/waveforms/initial")
+    #+end_src
 
-  #+begin_quote
-Some, like [[file:~/playground/morse-project/plots/waveforms/initial/cw002.png][cw002]] and [[file:~/playground/morse-project/plots/waveforms/initial/cw003.png][cw003]] seem to be readable with no adjustments:
-CW002: WRBCDGB5T1JNN63C3MR3
-CW003: G1FNCKUDZ63TSIJ5QH47
-  #+end_quote
+    #+begin_quote
+  Some, like [[file:~/playground/morse-project/plots/waveforms/initial/cw002.png][cw002]] and [[file:~/playground/morse-project/plots/waveforms/initial/cw003.png][cw003]] seem to be readable with no adjustments:
+  CW002: WRBCDGB5T1JNN63C3MR3
+  CW003: G1FNCKUDZ63TSIJ5QH47
+    #+end_quote
 
 - Boxplot of the durations:
-  #+begin_src R :file plots/general/dur-hist.png :results silent graphics
+  #+begin_src R :file ../plots/general/dur-hist.png :results file graphics
 summary_duration <- summary(basic_metadata$duration)
 mean_text <- paste("Mean:", round(summary_duration["Mean"], 2), "sec")
 
@@ -299,7 +162,6 @@ abline(v = summary_duration["3rd Qu."], col = "dark grey")
 text(x = 20, y = 40, labels = mean_text, col = "black", cex = 1.5)
   #+end_src
 
-  [[file:~/playground/morse-project/plots/general/dur-hist.png][Graphic - File Durations]]
 
   #+begin_quote
   Remember, this is a graphical representation of what summary already says:
@@ -339,7 +201,7 @@ head(basic_metadata)
 summary(basic_metadata$approx_wpm)
   #+end_src
 
-  #+begin_src R :file plots/general/wpm-approx.png :results silent graphics
+  #+begin_src R :file ../plots/general/wpm-approx.png :results file graphics
   # And, we'll visualize that as well...
   summary_wpm <- summary(basic_metadata$approx_wpm)
   mean_wpm <- summary_wpm["Mean"]
@@ -352,7 +214,7 @@ summary(basic_metadata$approx_wpm)
   abline(v = q3_wpm, col = "dark grey")
   #+end_src
 
-  [[file:~/playground/morse-project/plots/general/wpm-approx.png][Graphic - Approximate WPMs]]
+  https://github.com/allhailthetail/LyonCoursework[[file:../plots/general/wpm-approx.png]]
 
   #+begin_quote
   So, most of our morse code data will be between 18 and 35.6 WPM...
@@ -362,6 +224,7 @@ summary(basic_metadata$approx_wpm)
   #+begin_src R
   write.csv(basic_metadata, file = "./csv/basic_metadata.csv")
   #+end_src
+
 * Step 2: Audio Signal Summaries:
 - Copy the dataframe
   #+begin_src R
@@ -401,7 +264,8 @@ detailed_analysis[detailed_analysis$rms_amplitude == high_rms,]
   #+begin_src bash :results silent :noeval
 rm -r ../plots  # Remove plots dir...
 rm -r ../csv    # Remove csv data
-rm -r ../R
+rm -r ../R      # Dir of supporting functions
+rm -r ../.Rhistory # R history file
   #+end_src
 - Clean up Babel output blocks:
   #+begin_example elisp
