@@ -17,6 +17,24 @@ wav_remove_NAs <- function(waveform) {
 }
 #+end_src
 
+*** Clean and return normalized WAV
+#+name: read_wav
+#+begin_src R
+read_wav <- function(file) {
+  raw_wav <- tuneR::readWave(file)
+
+  # Remove NA values:
+  wav_remove_NAs(raw_wav) -> waveform_no_nas
+
+  # Normalize and center the WAV
+  wav_clean<- tuneR::normalize(waveform, pcm = FALSE, unit = "1", center = TRUE)
+
+  # Return to caller...
+  return(wav_clean)
+
+}
+#+end_src
+
 ** WAV file metrics:
 *** Mean amplitude / roughness calculations
 #+name: rms_amplitudes
@@ -132,13 +150,14 @@ plot_waveforms <- function(files, output_dir, bg = "white") {
     name <- tools::file_path_sans_ext(basename(file))
     output_name <- paste0(output_dir, "/", name, ".png")
 
-    tuneR::readWave(file) -> waveform
+    ## tuneR::readWave(file) -> waveform
 
     # Remove NA values:
-    wav_remove_NAs(waveform) -> waveform
+    ## wav_remove_NAs(waveform) -> waveform
 
     # Normalize:
-    waveform_n <- tuneR::normalize(waveform, pcm = FALSE, unit = "1", center = TRUE)
+    ## waveform_n <- tuneR::normalize(waveform, pcm = FALSE, unit = "1", center = TRUE)
+    waveform_n <- read_wav(file)
 
     # Calculate xlims and plot_dims
     ppi <- 200
@@ -173,8 +192,12 @@ Assemble/Tangle the main ~functions.R~ file:
 library(tuneR)
 library(seewave)
 
-<<rms_amplitudes>>
 <<wav_remove_NAs>>
+<<read_wav>>
+
 <<wav_metadata_multi>>
+
+<<rms_amplitudes>>
+
 <<plot_waveform>>
 #+end_src
