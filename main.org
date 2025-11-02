@@ -8,6 +8,7 @@
 - Org tweaks:
   #+begin_src elisp
   (org-display-inline-images t)
+  (+org-pretty-mode t)
   #+end_src
 
 - *Configure the working directory:*
@@ -17,50 +18,50 @@
   #+end_quote
 
   #+begin_src R :results silent
-# Get and set the working directory:
-Sys.getenv("MORSE_ROOT") -> projectRoot
-setwd(projectRoot)
-getwd()
+  # Get and set the working directory:
+  Sys.getenv("MORSE_ROOT") -> projectRoot
+  setwd(projectRoot)
+  getwd()
   #+end_src
 
 - The following dependencies need to be installed so that the audio processing can take place:
   #+name: imports
   #+begin_src R :results silent
-library(sonicscrewdriver)
-library(tuneR)
-source("R/project_functions.R")
+  library(sonicscrewdriver)
+  library(tuneR)
+  source("R/project_functions.R")
   #+end_src
 
 - Create directories for Plots, etc:
   #+begin_src bash :results silent
-mkdir -p ../plots/general            # to store plots...
-mkdir -p ../plots/waveforms/initial  # to store initial waveforms
-mkdir -p ../R                        # to store tangled functions:
-mkdir -p ../csv/                     # to store generated CSVs.
+  mkdir -p plots/general            # to store plots...
+  mkdir -p plots/waveforms/initial  # to store initial waveforms
+  mkdir -p R                        # to store tangled functions:
+  mkdir -p csv/                     # to store generated CSVs.
   #+end_src
 
 - Tangle functions in =functions.org=
   #+begin_src emacs-lisp
-(org-babel-tangle-file "functions.org")
+  (org-babel-tangle-file "functions.org")
   #+end_src
 
 * Step 1: Exploratory Data Analysis:
 - First, let's see how many files we're going to process and get some basic information about them:
   #+begin_src R
-"./data" -> audio_files_path
-list.files(audio_files_path,
-           full.names=TRUE) -> audio_files # this is a vec of all our audio files
+  "data" -> audio_files_path
+  list.files(audio_files_path,
+             full.names=TRUE) -> audio_files # this is a vec of all our audio files
 
-length(audio_files) # number of files to analyze...
+  length(audio_files) # number of files to analyze...
   #+end_src
 
 - Gathering basic metadata:
   #+begin_src R
-basic_metadata <- wav_metadata_multi(audio_files)
+  basic_metadata <- wav_metadata_multi(audio_files)
 
-summary(basic_metadata)
+  summary(basic_metadata)
 
-head(basic_metadata,2)
+  head(basic_metadata,2)
   #+end_src
 
   #+begin_quote
@@ -140,8 +141,8 @@ head(basic_metadata,2)
 - So, let's get a basic idea of what the files look like with some plots:
   - [[file:~/playground/morse-project/plots/waveforms/initial/][Output Directory]]
     #+begin_src R :results silent
-  audio_files <- basic_metadata$filename
-  plot_waveforms(audio_files, "./plots/waveforms/initial")
+    audio_files <- basic_metadata$filename
+    plot_waveforms(audio_files, "plots/waveforms/initial")
     #+end_src
 
     #+begin_quote
@@ -151,15 +152,15 @@ head(basic_metadata,2)
     #+end_quote
 
 - Boxplot of the durations:
-  #+begin_src R :file ../plots/general/dur-hist.png :results file graphics
-summary_duration <- summary(basic_metadata$duration)
-mean_text <- paste("Mean:", round(summary_duration["Mean"], 2), "sec")
+  #+begin_src R :file plots/general/dur-hist.png :results file graphics
+  summary_duration <- summary(basic_metadata$duration)
+  mean_text <- paste("Mean:", round(summary_duration["Mean"], 2), "sec")
 
-hist(x = basic_metadata$duration, xlab = "seconds", main = "Audio File Durations in Seconds", col = "lightblue")
-abline(v = summary_duration["Mean"], col = "red")
-abline(v = summary_duration["1st Qu."], col = "dark grey")
-abline(v = summary_duration["3rd Qu."], col = "dark grey")
-text(x = 20, y = 40, labels = mean_text, col = "black", cex = 1.5)
+  hist(x = basic_metadata$duration, xlab = "seconds", main = "Audio File Durations in Seconds", col = "lightblue")
+  abline(v = summary_duration["Mean"], col = "red")
+  abline(v = summary_duration["1st Qu."], col = "dark grey")
+  abline(v = summary_duration["3rd Qu."], col = "dark grey")
+  text(x = 20, y = 40, labels = mean_text, col = "black", cex = 1.5)
   #+end_src
 
 
@@ -175,13 +176,13 @@ text(x = 20, y = 40, labels = mean_text, col = "black", cex = 1.5)
 
 - Investigating long files outside Q3:
   #+begin_src R
-q3 <- 13.222
-above_q3 <- basic_metadata$duration > q3
+  q3 <- 13.222
+  above_q3 <- basic_metadata$duration > q3
 
-basic_metadata[above_q3,]
+  basic_metadata[above_q3,]
 
-numChars <- nchar(basic_metadata$prediction[27])
-numChars
+  numChars <- nchar(basic_metadata$prediction[27])
+  numChars
   #+end_src
 
   #+begin_quote
@@ -195,13 +196,13 @@ numChars
 
 - Let's add Words Per Minute to the Metadata:
   #+begin_src R
-approx_wpm <- round((12 * numChars) / basic_metadata$duration, 2)
-basic_metadata$approx_wpm <- approx_wpm
-head(basic_metadata)
-summary(basic_metadata$approx_wpm)
+  approx_wpm <- round((12 * numChars) / basic_metadata$duration, 2)
+  basic_metadata$approx_wpm <- approx_wpm
+  head(basic_metadata)
+  summary(basic_metadata$approx_wpm)
   #+end_src
 
-  #+begin_src R :file ../plots/general/wpm-approx.png :results file graphics
+  #+begin_src R :file plots/general/wpm-approx.png :results file graphics
   # And, we'll visualize that as well...
   summary_wpm <- summary(basic_metadata$approx_wpm)
   mean_wpm <- summary_wpm["Mean"]
@@ -214,42 +215,39 @@ summary(basic_metadata$approx_wpm)
   abline(v = q3_wpm, col = "dark grey")
   #+end_src
 
-  https://github.com/allhailthetail/LyonCoursework[[file:../plots/general/wpm-approx.png]]
-
   #+begin_quote
   So, most of our morse code data will be between 18 and 35.6 WPM...
   #+end_quote
 
 - Export Initial Data to CSV
   #+begin_src R
-  write.csv(basic_metadata, file = "./csv/basic_metadata.csv")
+  write.csv(basic_metadata, file = "csv/basic_metadata.csv")
   #+end_src
 
 * Step 2: Audio Signal Summaries:
 - Copy the dataframe
   #+begin_src R
-detailed_analysis <- basic_metadata
+  detailed_analysis <- basic_metadata
   #+end_src
 
 - Exploring mean amplitude / "roughness"
 
 - RMS Amplitude / average energy
   #+begin_src R
-rms_amplitudes(basic_metadata$filename) -> detailed_analysis$rms_amplitude
-detailed_analysis
+  rms_amplitudes(basic_metadata$filename) -> detailed_analysis$rms_amplitude
+  detailed_analysis
   #+end_src
 
   - Now, we should be able to see from the rms which are clearer and more noisy files:
     #+begin_src R
-min(detailed_analysis$rms_amplitude) -> low_rms
-max(detailed_analysis$rms_amplitude) -> high_rms
+    min(detailed_analysis$rms_amplitude) -> low_rms
+    max(detailed_analysis$rms_amplitude) -> high_rms
 
-detailed_analysis[detailed_analysis$rms_amplitude == low_rms,]
-detailed_analysis[detailed_analysis$rms_amplitude == high_rms,]
+    detailed_analysis[detailed_analysis$rms_amplitude == low_rms,]
+    detailed_analysis[detailed_analysis$rms_amplitude == high_rms,]
     #+end_src
 
     Sure enough, CW092 looks quite terrible, whereas CW074 is quite clear. This is probably what we're looking to optimize...
-
     [[file:~/playground/morse-project/plots/waveforms/initial/cw092.png][Graphic - cw092]]
     [[file:~/playground/morse-project/plots/waveforms/initial/cw074.png][Graphic - cw074]]
 
@@ -262,12 +260,13 @@ detailed_analysis[detailed_analysis$rms_amplitude == high_rms,]
 * Pre-commit Clean-up:
 - Remove Generated Files
   #+begin_src bash :results silent :noeval
-rm -r ../plots  # Remove plots dir...
-rm -r ../csv    # Remove csv data
-rm -r ../R      # Dir of supporting functions
-rm -r ../.Rhistory # R history file
+  rm -r plots  # Remove plots dir...
+  rm -r csv    # Remove csv data
+  rm -r R      # Dir of supporting functions
+  rm -r .Rhistory # R history file
   #+end_src
+
 - Clean up Babel output blocks:
   #+begin_example elisp
-(+org/remove-result-blocks)
+  (+org/remove-result-blocks)
   #+end_example
