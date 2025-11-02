@@ -66,11 +66,11 @@
   summary(basic_metadata)
 
   # Show first few entries...
-  head(basic_metadata,2)
+  head(basic_metadata, 2)
 
   # Audio duration sum()/60s/min
-  total_duration_mins <- sum(basic_metadata$duration)/60
-  paste('Total duration:', total_duration_mins)
+  #total_duration_mins <- sum(basic_metadata$duration)/60
+  #paste('Total duration:', total_duration_mins)
 
   #+end_src
 
@@ -103,6 +103,7 @@
     #+begin_src R :results silent
     basic_metadata$prediction <- NA
 
+    # Add in the given predictions from the challenge:
     basic_metadata$prediction[5] <- "FEFOFQUHYNZ3WONZRETF"
     basic_metadata$prediction[9] <- "5NITCM6O7M3VYTFUOLGB"
     basic_metadata$prediction[18] <- "NPAIUS139K2A5T2IQZY9"
@@ -171,9 +172,11 @@
     #+end_src
 
     #+begin_quote
-  Some, like [[file:~/playground/morse-project/plots/waveforms/initial/cw002.png][cw002]] and [[file:~/playground/morse-project/plots/waveforms/initial/cw003.png][cw003]] seem to be readable with no adjustments:
+  Some, like cw002 and cw003 seem to be readable with no adjustments:
   CW002: WRBCDGB5T1JNN63C3MR3
   CW003: G1FNCKUDZ63TSIJ5QH47
+  [[file:plots/waveforms/initial/cw002.png][cw002]]
+  [[file:plots/waveforms/initial/cw003.png][cw003]]
     #+end_quote
 
 - Boxplot of the durations:
@@ -262,7 +265,7 @@
 - RMS Amplitude / average energy
   #+begin_src R
   rms_amplitudes(basic_metadata$filename) -> detailed_analysis$rms_amplitude
-  detailed_analysis
+  head(detailed_analysis)
   #+end_src
 
   - Now, we should be able to see from the rms which are clearer and more noisy files:
@@ -279,8 +282,55 @@
     [[file:~/playground/morse-project/plots/waveforms/initial/cw074.png][Graphic - cw074]]
 
 - Zero-crossing rate / measure of noise
+  #+begin_src R :results graphics file :file plots/general/zcr-vs-rms-amp.png
+  plot(detailed_analysis$zcr ~ detailed_analysis$rms_amplitude,
+       main = 'Zero-crossing rate compared with root-mean-square amplitude:',
+       xlab = 'RMS amplitude', ylab = 'zero-crossing rate')
+  #+end_src
 
-- Detecting gaps and periods of silence
+  ZCR of cw092 vs cw074?
+  #+begin_src R
+  detailed_analysis[c(74,92), c('filename', 'zcr')]
+
+  # The range of this metric isn't much...
+  summary(detailed_analysis$zcr)
+  #+end_src
+
+  ZCR of a clean file:
+  #+begin_src R :results file graphics :file plots/general/zcr-initial-074.png
+  cw074 <- read_wav('data/cw074.wav')
+  zcr_cw074 <- zcr(cw074)[1:150,]
+  plot(zcr_cw074, main = 'Zero-crossing-rate for cw074.wav', type = 'l', col = 'green')
+  #+end_src
+
+  ZCR of a noisy file:
+  #+begin_src R :results file graphics :file plots/general/zcr-initial-092.png
+  cw092 <- read_wav('data/cw092.wav')
+  zcr_cw092 <- zcr(cw092)[1:150,]
+  plot(zcr_cw092, main = 'Zero-crossing rate for cw092.wav', type = 'l', col = 'red')
+  #+end_src
+
+  #+begin_src R :results file graphics :file plots/general/zcr_i_092_vs_074.png
+min_length <- min(length(zcr_cw092), length(zcr_cw074))
+
+z92 <- zcr_cw092[1:min_length]
+z74 <- zcr_cw074[1:min_length]
+
+x_values <- seq(1, min_length)
+
+plot(zcr_cw092, ylim = c(0.1, 0.6), type = 'l', col = 'red',
+     main = 'comparison of ZCR over time for two waveforms:')
+lines(zcr_cw074, type = 'l', col = 'green')
+legend('bottomright', legend = c('cw092', 'cw074'), col = c('red', 'green'), lty = 1)
+  #+end_src
+
+  =Basically, higher ZCR -> higher static...=
+  Lower RMS, lower noise.
+  #+begin_example R
+  subset(detailed_analysis, detailed_analysis$rms > 0.3448)$filename # Are all exceptionally clean files...
+  subset(detailed_analysis, detailed_analysis$rms >= 0.29 & detailed_analysis$rms < 0.3)$filename # These are your average recordings...
+  #+end_example
+
 
 - Spectral centroid
 

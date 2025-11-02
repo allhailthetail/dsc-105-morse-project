@@ -66,33 +66,19 @@ rms_amplitudes <- function(files) {
 *** Fetch metadata for a single audio file:
 #+name: wav_metadata
 #+begin_src R
-wav_metadata <- function (file) {
-
-  # Fetch clean WAV from supporting function
-  wav_clean <- read_wav(file)
-
-  metadata <- c(file,
-                length(wav_clean),
-                round((length(wav_clean) / wav_clean@samp.rate),3),
-                min(wav_clean@left),
-                median(wav_clean@left),
-                max(wav_clean@left),
-                wav_clean@samp.rate,
-                wav_clean@stereo,
-                wav_clean@pcm,
-                wav_clean@bit)
-
-
-  names(metadata) <- c("filename",
-                       "samples",
-                       "duration",
-                       "minAmp",
-                       "medAmp",
-                       "maxAmp",
-                       "sampleRate",
-                       "stereo",
-                       "pcm",
-                       "bitdepth")
+# Parameters: _CLEANED_ tuneR::wave class
+# Output: vec of metadata
+wav_metadata <- function (wav_clean) {
+  metadata <- c(samples = length(wav_clean),
+                duration = round((length(wav_clean) / wav_clean@samp.rate),3),
+                minAmp = min(wav_clean@left),
+                medAmp = median(wav_clean@left),
+                maxAmp = max(wav_clean@left),
+                zcr = seewave::zcr(wav_clean, channel = 1, wl = NULL), # Compute for whole file...
+                sampleRate = wav_clean@samp.rate,
+                stereo = wav_clean@stereo,
+                pcm = wav_clean@pcm,
+                bitdepth = wav_clean@bit)
 
   return(metadata)
 }
@@ -103,40 +89,46 @@ wav_metadata <- function (file) {
 #+begin_src R
 <<wav_metadata>>
 
+# Parameters: vec of files
+# Output: data.frame of metadata for files
 wav_metadata_multi <- function (files) {
-filename <- c() # Empty lists to hold values:
-samples <- c()
-duration <- c()
-minAmp <- c()
-medAmp <- c()
-maxAmp <- c()
-sampleRate <- c()
-stereo <- c()
-pcm <- c()
-bitdepth <- c()
+  filename <- character() # Empty lists to hold values:
+  samples <- numeric()
+  duration <- numeric()
+  minAmp <- numeric()
+  medAmp <- numeric()
+  maxAmp <- numeric()
+  zcr <- numeric()
+  sampleRate <- numeric()
+  stereo <- logical()
+  pcm <- logical()
+  bitdepth <- numeric()
 
-for(file in files) {
-  metadata <- wav_metadata(file)
-  filename <- append(filename, as.character(metadata["filename"]))
-  samples <- append(samples, as.numeric(metadata["samples"]))
-  duration <- append(duration, as.numeric(metadata["duration"]))
-  minAmp <- append(minAmp, as.numeric(metadata['minAmp']))
-  medAmp <- append(medAmp, as.numeric(metadata['medAmp']))
-  maxAmp <- append(maxAmp, as.numeric(metadata['maxAmp']))
-  sampleRate <- append(sampleRate, as.numeric(metadata["sampleRate"]))
-  stereo <- append(stereo, as.logical(metadata["stereo"]))
-  pcm <- append(pcm, as.logical(metadata["pcm"]))
-  bitdepth <- append(bitdepth, as.numeric(metadata["bitdepth"]))
-}
+  for(file in files) {
 
-## data.frame(filename, samples, duration,
-##            minAmp, medAmp, maxAmp,
-##            sampleRate, stereo, pcm, bitdepth)
+    # Read the raw WAV file...
+    raw_wav <- read_wav(file)
 
-                                      # NOTE: There's something wrong with the amplitudes, so not including those for now?
-                                      #       Some sort of overflow issue?
-data.frame(filename, samples, duration,
-           sampleRate, stereo, pcm, bitdepth)
+    # Pass the CLEANED wave to the metadata fetching function
+    metadata <- wav_metadata(raw_wav)
+
+    filename <- append(filename, as.character(file))
+    samples <- append(samples, as.numeric(metadata["samples"]))
+    duration <- append(duration, as.numeric(metadata["duration"]))
+    minAmp <- append(minAmp, as.numeric(metadata['minAmp']))
+    medAmp <- append(medAmp, as.numeric(metadata['medAmp']))
+    maxAmp <- append(maxAmp, as.numeric(metadata['maxAmp']))
+    zcr <- append(zcr, metadata['zcr'])
+    sampleRate <- append(sampleRate, as.numeric(metadata["sampleRate"]))
+    stereo <- append(stereo, as.logical(metadata["stereo"]))
+    pcm <- append(pcm, as.logical(metadata["pcm"]))
+    bitdepth <- append(bitdepth, as.numeric(metadata["bitdepth"]))
+  }
+
+  # Return the dataframe:
+  data.frame(filename, samples, duration,
+             minAmp, medAmp, maxAmp, zcr,
+             sampleRate, stereo, pcm, bitdepth)
 }
 #+end_src
 
