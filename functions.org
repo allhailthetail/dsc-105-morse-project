@@ -5,9 +5,7 @@
 * Functions:
 ** Processing the WAV files:
 *** Remove NAs from each Waveform:
-#+begin_quote
 For reasons unkonwn, the .wav files sometimes contain NA values...  These needed to be removed...
-#+end_quote
 
 #+name: wav_remove_NAs
 #+begin_src R
@@ -18,6 +16,11 @@ wav_remove_NAs <- function(waveform) {
 #+end_src
 
 *** Clean and return normalized WAV
+Because of how soundcards work, the audio read into R is - by default - straight raw info... It's essentially a SINE wave raised above the Y-axis...
+This stinks and isn't what I wanted to work with. Consequently, I had to work quite a bit with the library to clean each WAV file so it's a normalized [-1,+1] waveform.
+This should make the output sounds consistent when they get read later for object-based image analysis. However, the WAV files will have to be converted back to soundcard-friendly files
+if they will be replayed.
+
 #+name: read_wav
 #+begin_src R
 read_wav <- function(file) {
@@ -27,7 +30,7 @@ read_wav <- function(file) {
   wav_remove_NAs(raw_wav) -> waveform_no_nas
 
   # Normalize and center the WAV
-  wav_clean<- tuneR::normalize(waveform, pcm = FALSE, unit = "1", center = TRUE)
+  wav_clean<- tuneR::normalize(waveform_no_nas, pcm = FALSE, unit = "1", center = TRUE)
 
   # Return to caller...
   return(wav_clean)
@@ -36,7 +39,10 @@ read_wav <- function(file) {
 #+end_src
 
 ** WAV file metrics:
-*** Mean amplitude / roughness calculations
+*** RMS amplitude / roughness calculations
+
+TODO: This should be refactored into fetch metadatas.
+
 #+name: rms_amplitudes
 #+begin_src R
 rms_amplitudes <- function(files) {
@@ -61,21 +67,20 @@ rms_amplitudes <- function(files) {
 #+name: wav_metadata
 #+begin_src R
 wav_metadata <- function (file) {
-  wavfile <- tuneR::readWave(file)
-  wavefile <- normalize(wavfile,
-                        unit = "8",
-                        pcm = wavfile@pcm) # Open .wav into memory
+
+  # Fetch clean WAV from supporting function
+  wav_clean <- read_wav(file)
 
   metadata <- c(file,
-                length(wavefile),
-                round((length(wavefile) / wavefile@samp.rate),3),
-                min(wavefile@left),
-                median(wavefile@left),
-                max(wavefile@left),
-                wavefile@samp.rate,
-                wavefile@stereo,
-                wavefile@pcm,
-                wavefile@bit)
+                length(wav_clean),
+                round((length(wav_clean) / wav_clean@samp.rate),3),
+                min(wav_clean@left),
+                median(wav_clean@left),
+                max(wav_clean@left),
+                wav_clean@samp.rate,
+                wav_clean@stereo,
+                wav_clean@pcm,
+                wav_clean@bit)
 
 
   names(metadata) <- c("filename",
@@ -89,7 +94,7 @@ wav_metadata <- function (file) {
                        "pcm",
                        "bitdepth")
 
-  metadata
+  return(metadata)
 }
 #+end_src
 
@@ -150,18 +155,12 @@ plot_waveforms <- function(files, output_dir, bg = "white") {
     name <- tools::file_path_sans_ext(basename(file))
     output_name <- paste0(output_dir, "/", name, ".png")
 
-    ## tuneR::readWave(file) -> waveform
-
-    # Remove NA values:
-    ## wav_remove_NAs(waveform) -> waveform
-
-    # Normalize:
-    ## waveform_n <- tuneR::normalize(waveform, pcm = FALSE, unit = "1", center = TRUE)
-    waveform_n <- read_wav(file)
+    # Fetch clean WAV from supporting function
+    wav_clean <- read_wav(file)
 
     # Calculate xlims and plot_dims
     ppi <- 200
-    xlim <- c(0, ceiling(length(waveform_n) / waveform_n@samp.rate))
+    xlim <- c(0, ceiling(length(wav_clean) / wav_clean@samp.rate))
     plot_dims <- c(xlim[2], 2) * ppi
 
     # Set up a PNG for output:
@@ -171,7 +170,7 @@ plot_waveforms <- function(files, output_dir, bg = "white") {
     par(xaxs = "i")
 
     # Plot:
-    tuneR::plot(waveform_n, main = name, xlim = xlim,
+    tuneR::plot(wav_clean, main = name, xlim = xlim,
                 xlab = "Time (s)", ylab = "Normalized Amplitude",
                 col = "steelblue", lwd = 1.2)
 
@@ -188,7 +187,7 @@ plot_waveforms <- function(files, output_dir, bg = "white") {
 
 * Main File:
 Assemble/Tangle the main ~functions.R~ file:
-#+begin_src R :tangle ../R/project_functions.R
+#+begin_src R :tangle R/project_functions.R
 library(tuneR)
 library(seewave)
 

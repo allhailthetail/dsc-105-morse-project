@@ -11,27 +11,6 @@
   (+org-pretty-mode t)
   #+end_src
 
-- *Configure the working directory:*
-  #+begin_quote
-  The project is assuming that R's working directory is the repository root. For simplicity, I set this up
-  as an environment variable on my system, ~MORSE_ROOT~ and pointed R that as shown...
-  #+end_quote
-
-  #+begin_src R :results silent
-  # Get and set the working directory:
-  Sys.getenv("MORSE_ROOT") -> projectRoot
-  setwd(projectRoot)
-  getwd()
-  #+end_src
-
-- The following dependencies need to be installed so that the audio processing can take place:
-  #+name: imports
-  #+begin_src R :results silent
-  library(sonicscrewdriver)
-  library(tuneR)
-  source("R/project_functions.R")
-  #+end_src
-
 - Create directories for Plots, etc:
   #+begin_src bash :results silent
   mkdir -p plots/general            # to store plots...
@@ -40,9 +19,31 @@
   mkdir -p csv/                     # to store generated CSVs.
   #+end_src
 
+- *Configure the working directory:*
+  #+begin_quote
+  The project is assuming that R's working directory is the repository root. For simplicity, I set this up
+  as an environment variable on my system, ~MORSE_ROOT~ and pointed R that as shown...
+  #+end_quote
+
+- Init R and set working dir:
+  #+begin_src R :results silent
+  # Get and set the working directory:
+  Sys.getenv("MORSE_ROOT") -> projectRoot
+  setwd(projectRoot)
+  getwd()
+  #+end_src
+
 - Tangle functions in =functions.org=
   #+begin_src emacs-lisp
   (org-babel-tangle-file "functions.org")
+  #+end_src
+
+- The following dependencies need to be installed so that the audio processing can take place:
+  #+name: imports
+  #+begin_src R :results silent
+  library(sonicscrewdriver)
+  library(tuneR)
+  source("R/project_functions.R")
   #+end_src
 
 * Step 1: Exploratory Data Analysis:
@@ -56,13 +57,37 @@
   #+end_src
 
 - Gathering basic metadata:
+  #+name: gather_basic_metadata
   #+begin_src R
+  # Fetch metadata for the dir of files:
   basic_metadata <- wav_metadata_multi(audio_files)
 
+  # Summary of metadata gathered...
   summary(basic_metadata)
 
+  # Show first few entries...
   head(basic_metadata,2)
+
+  # Audio duration sum()/60s/min
+  total_duration_mins <- sum(basic_metadata$duration)/60
+  paste('Total duration:', total_duration_mins)
+
   #+end_src
+
+  #+RESULTS:
+  #+begin_example
+  filename            samples          duration        sampleRate     stereo          pcm             bitdepth
+   Length:200         Min.   : 37327   Min.   : 4.666   Min.   :8000   Mode :logical   Mode:logical   Min.   :8
+   Class :character   1st Qu.: 53932   1st Qu.: 6.742   1st Qu.:8000   FALSE:200       TRUE:200       1st Qu.:8
+   Mode  :character   Median : 73026   Median : 9.129   Median :8000                                  Median :8
+                      Mean   : 86519   Mean   :10.815   Mean   :8000                                  Mean   :8
+                      3rd Qu.:105775   3rd Qu.:13.222   3rd Qu.:8000                                  3rd Qu.:8
+                      Max.   :216967   Max.   :27.121   Max.   :8000                                  Max.   :8
+  filename samples duration sampleRate stereo  pcm bitdepth
+  1 data/cw001.wav  139046   17.381       8000  FALSE TRUE        8
+  2 data/cw002.wav   92953   11.619       8000  FALSE TRUE        8
+  [1] "Total duration: 36.0497166666667"
+  #+end_example
 
   #+begin_quote
   - So, there's not a lot to see, but already we can draw some conclusions:
@@ -179,8 +204,10 @@
   q3 <- 13.222
   above_q3 <- basic_metadata$duration > q3
 
-  basic_metadata[above_q3,]
+  # These are the files that are longer than average...
+  head(basic_metadata[above_q3,], 5)
 
+  # Number of Characters in samples
   numChars <- nchar(basic_metadata$prediction[27])
   numChars
   #+end_src
