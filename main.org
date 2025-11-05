@@ -1,5 +1,5 @@
 #+title: Main File - Morse Project
-#+startup: indent overview hideblocks entitiespretty
+#+startup: indent hideblocks entitiespretty
 #+PROPERTY: header-args:R :session *R* :results output :mkdirp yes
 
 * Prerequisites
@@ -47,58 +47,58 @@
   #+end_src
 
 * Step 1: Exploratory Data Analysis:
-- First, let's see how many files we're going to process and get some basic information about them:
-  #+begin_src R
-  "data" -> audio_files_path
-  list.files(audio_files_path,
-             full.names=TRUE) -> audio_files # this is a vec of all our audio files
+** First, let's see how many files we're going to process and get some basic information about them:
+#+begin_src R
+"data" -> audio_files_path
+list.files(audio_files_path,
+           full.names=TRUE) -> audio_files # this is a vec of all our audio files
 
-  length(audio_files) # number of files to analyze...
-  #+end_src
+length(audio_files) # number of files to analyze...
+#+end_src
 
-- Gathering basic metadata:
-  #+name: gather_basic_metadata
-  #+begin_src R
-  # Fetch metadata for the dir of files:
-  basic_metadata <- wav_metadata_multi(audio_files)
+** Gathering basic metadata:
+#+name: gather_basic_metadata
+#+begin_src R
+# Fetch metadata for the dir of files:
+basic_metadata <- wav_metadata_multi(audio_files)
 
-  # Summary of metadata gathered...
-  summary(basic_metadata)
+# Summary of metadata gathered...
+summary(basic_metadata)
 
-  # Show first few entries...
-  head(basic_metadata, 2)
+# Show first few entries...
+head(basic_metadata, 2)
 
-  # Audio duration sum()/60s/min
-  #total_duration_mins <- sum(basic_metadata$duration)/60
-  #paste('Total duration:', total_duration_mins)
+# Audio duration sum()/60s/min
+#total_duration_mins <- sum(basic_metadata$duration)/60
+#paste('Total duration:', total_duration_mins)
 
-  #+end_src
+#+end_src
 
-  #+RESULTS:
-  #+begin_example
-  filename            samples          duration        sampleRate     stereo          pcm             bitdepth
-   Length:200         Min.   : 37327   Min.   : 4.666   Min.   :8000   Mode :logical   Mode:logical   Min.   :8
-   Class :character   1st Qu.: 53932   1st Qu.: 6.742   1st Qu.:8000   FALSE:200       TRUE:200       1st Qu.:8
-   Mode  :character   Median : 73026   Median : 9.129   Median :8000                                  Median :8
-                      Mean   : 86519   Mean   :10.815   Mean   :8000                                  Mean   :8
-                      3rd Qu.:105775   3rd Qu.:13.222   3rd Qu.:8000                                  3rd Qu.:8
-                      Max.   :216967   Max.   :27.121   Max.   :8000                                  Max.   :8
-  filename samples duration sampleRate stereo  pcm bitdepth
-  1 data/cw001.wav  139046   17.381       8000  FALSE TRUE        8
-  2 data/cw002.wav   92953   11.619       8000  FALSE TRUE        8
-  [1] "Total duration: 36.0497166666667"
-  #+end_example
+#+RESULTS:
+#+begin_example
+filename            samples          duration        sampleRate     stereo          pcm             bitdepth
+ Length:200         Min.   : 37327   Min.   : 4.666   Min.   :8000   Mode :logical   Mode:logical   Min.   :8
+ Class :character   1st Qu.: 53932   1st Qu.: 6.742   1st Qu.:8000   FALSE:200       TRUE:200       1st Qu.:8
+ Mode  :character   Median : 73026   Median : 9.129   Median :8000                                  Median :8
+                    Mean   : 86519   Mean   :10.815   Mean   :8000                                  Mean   :8
+                    3rd Qu.:105775   3rd Qu.:13.222   3rd Qu.:8000                                  3rd Qu.:8
+                    Max.   :216967   Max.   :27.121   Max.   :8000                                  Max.   :8
+filename samples duration sampleRate stereo  pcm bitdepth
+1 data/cw001.wav  139046   17.381       8000  FALSE TRUE        8
+2 data/cw002.wav   92953   11.619       8000  FALSE TRUE        8
+[1] "Total duration: 36.0497166666667"
+#+end_example
 
-  #+begin_quote
-  - So, there's not a lot to see, but already we can draw some conclusions:
-    1. We're dealing with approximately 36 minutes worth of data in total.
-    2. All of it is mono audio, so we don't need to average the two channels
-    3. There are more samples per file than would be efficient to graph as individual points,
-       Luckily, tuneR has a special plot function that handles this...
-  #+end_quote
+#+begin_quote
+- So, there's not a lot to see, but already we can draw some conclusions:
+  1. We're dealing with approximately 36 minutes worth of data in total.
+  2. All of it is mono audio, so we don't need to average the two channels
+  3. There are more samples per file than would be efficient to graph as individual points,
+     Luckily, tuneR has a special plot function that handles this...
+#+end_quote
 
-- Filling in Known Predictions:
-  - Handy Regex: (\d+),\s*(\w*) -> basic_metadata$prediction[\1] <- "\2"
+** Filling in Known Predictions:
+- Handy Regex: =(\d+),\s*(\w*) -> basic_metadata$prediction[\1] <- "\2"=
     #+names: metadata - add predictions
     #+begin_src R :results silent
     basic_metadata$prediction <- NA
@@ -164,153 +164,145 @@
     basic_metadata$prediction[199] <- "ZEA2Y4H4NX6JST0J3IY8"
     #+end_src
 
-- So, let's get a basic idea of what the files look like with some plots:
-  - [[file:~/playground/morse-project/plots/waveforms/initial/][Output Directory]]
-    #+begin_src R :results silent
-    audio_files <- basic_metadata$filename
-    plot_waveforms(audio_files, "plots/waveforms/initial")
-    #+end_src
+** Bulk generate initial waveforms:
+[[file:~/playground/morse-project/plots/waveforms/initial/][Output Directory]]
+#+begin_src R :results silent
+audio_files <- basic_metadata$filename
+plot_waveforms(audio_files, "plots/waveforms/initial")
+#+end_src
 
-    #+begin_quote
-  Some, like cw002 and cw003 seem to be readable with no adjustments:
-  CW002: WRBCDGB5T1JNN63C3MR3
-  CW003: G1FNCKUDZ63TSIJ5QH47
-  [[file:plots/waveforms/initial/cw002.png][cw002]]
-  [[file:plots/waveforms/initial/cw003.png][cw003]]
-    #+end_quote
+#+begin_quote
+Some, like cw002 and cw003 seem to be readable with no adjustments:
+CW002: WRBCDGB5T1JNN63C3MR3
+CW003: G1FNCKUDZ63TSIJ5QH47
+#+end_quote
+[[file:plots/waveforms/initial/cw002.png][cw002]]
+[[file:plots/waveforms/initial/cw003.png][cw003]]
 
-- Boxplot of the durations:
-  #+begin_src R :file plots/general/dur-hist.png :results file graphics
-  summary_duration <- summary(basic_metadata$duration)
-  mean_text <- paste("Mean:", round(summary_duration["Mean"], 2), "sec")
+** Boxplot of the durations:
+#+begin_src R :file plots/general/dur-hist.png :results file graphics
+summary_duration <- summary(basic_metadata$duration)
+mean_text <- paste("Mean:", round(summary_duration["Mean"], 2), "sec")
 
-  hist(x = basic_metadata$duration, xlab = "seconds", main = "Audio File Durations in Seconds", col = "lightblue")
-  abline(v = summary_duration["Mean"], col = "red")
-  abline(v = summary_duration["1st Qu."], col = "dark grey")
-  abline(v = summary_duration["3rd Qu."], col = "dark grey")
-  text(x = 20, y = 40, labels = mean_text, col = "black", cex = 1.5)
-  #+end_src
+hist(x = basic_metadata$duration, xlab = "seconds", main = "Audio File Durations in Seconds", col = "lightblue")
+abline(v = summary_duration["Mean"], col = "red")
+abline(v = summary_duration["1st Qu."], col = "dark grey")
+abline(v = summary_duration["3rd Qu."], col = "dark grey")
+text(x = 20, y = 40, labels = mean_text, col = "black", cex = 1.5)
+#+end_src
 
+#+begin_quote
+Remember, this is a graphical representation of what summary already says:
+> summary(basic_metadata$duration)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  4.666   6.742   9.129  10.815  13.222  27.121
 
-  #+begin_quote
-  Remember, this is a graphical representation of what summary already says:
-  > summary(basic_metadata$duration)
-     Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
-    4.666   6.742   9.129  10.815  13.222  27.121
+So, the files are typically no less than ~6-3/4 seconds in length, no more than ~13-1/4 seconds...
+The skew shows that there are outlier files that are particularly long. The original dataset did mention that there was corruption in the initial upload, so that should be investigated.
+#+end_quote
 
-  So, the files are typically no less than ~6-3/4 seconds in length, no more than ~13-1/4 seconds...
-  The skew shows that there are outlier files that are particularly long. The original dataset did mention that there was corruption in the initial upload, so that should be investigated.
-  #+end_quote
+** Investigating long files outside Q3:
+#+begin_src R
+q3 <- 13.222
+above_q3 <- basic_metadata$duration > q3
 
-- Investigating long files outside Q3:
-  #+begin_src R
-  q3 <- 13.222
-  above_q3 <- basic_metadata$duration > q3
+# These are the files that are longer than average...
+head(basic_metadata[above_q3,], 5)
 
-  # These are the files that are longer than average...
-  head(basic_metadata[above_q3,], 5)
+# Number of Characters in samples
+numChars <- nchar(basic_metadata$prediction[27])
+numChars
+#+end_src
 
-  # Number of Characters in samples
-  numChars <- nchar(basic_metadata$prediction[27])
-  numChars
-  #+end_src
+#+begin_quote
+Actually, I do see a pattern now that the data is visualized and in a table...
+Conveniently for us, every message seems to contain 20 characters. That means that we can get a good estimate of
+the words per minute for each file with no extra effort!! Perfect for training a model...
 
-  #+begin_quote
-  Actually, I do see a pattern now that the data is visualized and in a table...
-  Conveniently for us, every message seems to contain 20 characters. That means that we can get a good estimate of
-  the words per minute for each file with no extra effort!! Perfect for training a model...
+WPM = (60s x numChars/5)/time
+WPM = 12 x numChars / time
+#+end_quote
 
-  WPM = (60s x numChars/5)/time
-  WPM = 12 x numChars / time
-  #+end_quote
+** Let's add Words Per Minute to the Metadata:
+#+begin_src R
+approx_wpm <- round((12 * numChars) / basic_metadata$duration, 2)
+basic_metadata$approx_wpm <- approx_wpm
+head(basic_metadata)
+summary(basic_metadata$approx_wpm)
+#+end_src
 
-- Let's add Words Per Minute to the Metadata:
-  #+begin_src R
-  approx_wpm <- round((12 * numChars) / basic_metadata$duration, 2)
-  basic_metadata$approx_wpm <- approx_wpm
-  head(basic_metadata)
-  summary(basic_metadata$approx_wpm)
-  #+end_src
+#+begin_src R :file plots/general/wpm-approx.png :results file graphics
+# And, we'll visualize that as well...
+summary_wpm <- summary(basic_metadata$approx_wpm)
+mean_wpm <- summary_wpm["Mean"]
+q1_wpm <- summary_wpm["1st Qu."]
+q3_wpm <- summary_wpm["3rd Qu."]
 
-  #+begin_src R :file plots/general/wpm-approx.png :results file graphics
-  # And, we'll visualize that as well...
-  summary_wpm <- summary(basic_metadata$approx_wpm)
-  mean_wpm <- summary_wpm["Mean"]
-  q1_wpm <- summary_wpm["1st Qu."]
-  q3_wpm <- summary_wpm["3rd Qu."]
+hist(x = basic_metadata$approx_wpm, xlab = "Words per Minute", main = "Estimated WPM values for Audio Clips", col = "lightblue")
+abline(v = mean_wpm, col = "red")
+abline(v = q1_wpm, col = "dark grey")
+abline(v = q3_wpm, col = "dark grey")
+#+end_src
 
-  hist(x = basic_metadata$approx_wpm, xlab = "Words per Minute", main = "Estimated WPM values for Audio Clips", col = "lightblue")
-  abline(v = mean_wpm, col = "red")
-  abline(v = q1_wpm, col = "dark grey")
-  abline(v = q3_wpm, col = "dark grey")
-  #+end_src
+#+begin_quote
+So, most of our morse code data will be between 18 and 35.6 WPM...
+#+end_quote
 
-  #+begin_quote
-  So, most of our morse code data will be between 18 and 35.6 WPM...
-  #+end_quote
-
-- Export Initial Data to CSV
-  #+begin_src R
-  write.csv(basic_metadata, file = "csv/basic_metadata.csv")
-  #+end_src
+** Export Initial Data to CSV
+#+begin_src R :results silent
+write.csv(basic_metadata, file = "csv/basic_metadata.csv")
+#+end_src
 
 * Step 2: Audio Signal Summaries:
-- Copy the dataframe
+** Copy the dataframe
   #+begin_src R
   detailed_analysis <- basic_metadata
   #+end_src
 
-- Exploring mean amplitude / "roughness"
+** Exploring RMS amplitude / "roughness"
+#+begin_src R
+rms_amplitudes(basic_metadata$filename) -> detailed_analysis$rms_amplitude
+head(detailed_analysis)
+#+end_src
 
-- RMS Amplitude / average energy
-  #+begin_src R
-  rms_amplitudes(basic_metadata$filename) -> detailed_analysis$rms_amplitude
-  head(detailed_analysis)
-  #+end_src
+Now, we should be able to see from the rms which are clearer and more noisy files:
 
-  - Now, we should be able to see from the rms which are clearer and more noisy files:
-    #+begin_src R
-    min(detailed_analysis$rms_amplitude) -> low_rms
-    max(detailed_analysis$rms_amplitude) -> high_rms
+#+begin_src R
+min(detailed_analysis$rms_amplitude) -> low_rms
+max(detailed_analysis$rms_amplitude) -> high_rms
 
-    detailed_analysis[detailed_analysis$rms_amplitude == low_rms,]
-    detailed_analysis[detailed_analysis$rms_amplitude == high_rms,]
-    #+end_src
+detailed_analysis[detailed_analysis$rms_amplitude == low_rms,]
+detailed_analysis[detailed_analysis$rms_amplitude == high_rms,]
+#+end_src
 
-    Sure enough, CW092 looks quite terrible, whereas CW074 is quite clear. This is probably what we're looking to optimize...
-    [[file:~/playground/morse-project/plots/waveforms/initial/cw092.png][Graphic - cw092]]
-    [[file:~/playground/morse-project/plots/waveforms/initial/cw074.png][Graphic - cw074]]
+Sure enough, CW092 looks quite terrible, whereas CW074 is quite clear. This is probably what we're looking to optimize...
 
-- Zero-crossing rate / measure of noise
-  #+begin_src R :results graphics file :file plots/general/zcr-vs-rms-amp.png
-  plot(detailed_analysis$zcr ~ detailed_analysis$rms_amplitude,
-       main = 'Zero-crossing rate compared with root-mean-square amplitude:',
-       xlab = 'RMS amplitude', ylab = 'zero-crossing rate')
-  #+end_src
+[[file:~/playground/morse-project/plots/waveforms/initial/cw092.png][Graphic - cw092]]
+[[file:~/playground/morse-project/plots/waveforms/initial/cw074.png][Graphic - cw074]]
 
-  ZCR of cw092 vs cw074?
-  #+begin_src R
-  detailed_analysis[c(74,92), c('filename', 'zcr')]
+** Zero-crossing rate / measure of noise
+#+begin_src R :results graphics file :file plots/general/zcr-vs-rms-amp.png
+plot(detailed_analysis$zcr ~ detailed_analysis$rms_amplitude,
+     main = 'Zero-crossing rate compared with root-mean-square amplitude:',
+     xlab = 'RMS amplitude', ylab = 'zero-crossing rate')
+#+end_src
 
-  # The range of this metric isn't much...
-  summary(detailed_analysis$zcr)
-  #+end_src
+#+name: ZCR of a clean file:
+#+begin_src R :results file graphics :file plots/general/zcr-initial-074.png
+cw074 <- read_wav('data/cw074.wav')
+zcr_cw074 <- zcr(cw074)[1:150,]
+plot(zcr_cw074, main = 'Zero-crossing-rate for cw074.wav', type = 'l', col = 'green')
+#+end_src
 
-  ZCR of a clean file:
-  #+begin_src R :results file graphics :file plots/general/zcr-initial-074.png
-  cw074 <- read_wav('data/cw074.wav')
-  zcr_cw074 <- zcr(cw074)[1:150,]
-  plot(zcr_cw074, main = 'Zero-crossing-rate for cw074.wav', type = 'l', col = 'green')
-  #+end_src
+#+name: ZCR of a noisy file:
+#+begin_src R :results file graphics :file plots/general/zcr-initial-092.png
+cw092 <- read_wav('data/cw092.wav')
+zcr_cw092 <- zcr(cw092)[1:150,]
+plot(zcr_cw092, main = 'Zero-crossing rate for cw092.wav', type = 'l', col = 'red')
+#+end_src
 
-  ZCR of a noisy file:
-  #+begin_src R :results file graphics :file plots/general/zcr-initial-092.png
-  cw092 <- read_wav('data/cw092.wav')
-  zcr_cw092 <- zcr(cw092)[1:150,]
-  plot(zcr_cw092, main = 'Zero-crossing rate for cw092.wav', type = 'l', col = 'red')
-  #+end_src
-
-  #+begin_src R :results file graphics :file plots/general/zcr_i_092_vs_074.png
+#+name: ZCR Comparison:
+#+begin_src R :results file graphics :file plots/general/zcr_i_092_vs_074.png
 min_length <- min(length(zcr_cw092), length(zcr_cw074))
 
 z92 <- zcr_cw092[1:min_length]
@@ -322,20 +314,17 @@ plot(zcr_cw092, ylim = c(0.1, 0.6), type = 'l', col = 'red',
      main = 'comparison of ZCR over time for two waveforms:')
 lines(zcr_cw074, type = 'l', col = 'green')
 legend('bottomright', legend = c('cw092', 'cw074'), col = c('red', 'green'), lty = 1)
-  #+end_src
+#+end_src
 
-  =Basically, higher ZCR -> higher static...=
-  Lower RMS, lower noise.
-  #+begin_example R
-  subset(detailed_analysis, detailed_analysis$rms > 0.3448)$filename # Are all exceptionally clean files...
-  subset(detailed_analysis, detailed_analysis$rms >= 0.29 & detailed_analysis$rms < 0.3)$filename # These are your average recordings...
-  #+end_example
-
-
-- Spectral centroid
+=Basically, higher ZCR -> higher static...=
+Lower RMS, lower noise.
+#+begin_example R
+subset(detailed_analysis, detailed_analysis$rms > 0.3448)$filename # Are all exceptionally clean files...
+subset(detailed_analysis, detailed_analysis$rms >= 0.29 & detailed_analysis$rms < 0.3)$filename # These are your average recordings...
+#+end_example
 
 * Pre-commit Clean-up:
-- Remove Generated Files
+  #+name:Remove Generated Files
   #+begin_src bash :results silent :noeval
   rm -r plots  # Remove plots dir...
   rm -r csv    # Remove csv data
@@ -343,7 +332,7 @@ legend('bottomright', legend = c('cw092', 'cw074'), col = c('red', 'green'), lty
   rm -r .Rhistory # R history file
   #+end_src
 
-- Clean up Babel output blocks:
-  #+begin_example elisp
-  (+org/remove-result-blocks)
-  #+end_example
+ Clean up Babel output blocks:
+ #+begin_example elisp
+ (+org/remove-result-blocks)
+ #+end_example
