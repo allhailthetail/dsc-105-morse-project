@@ -13,10 +13,11 @@
 
 - Create directories for Plots, etc:
   #+begin_src bash :results silent
-  mkdir -p plots/general            # to store plots...
-  mkdir -p plots/waveforms/initial  # to store initial waveforms
-  mkdir -p R                        # to store tangled functions:
-  mkdir -p csv/                     # to store generated CSVs.
+  mkdir -p plots/general               # to store plots...
+  mkdir -p plots/waveforms/initial     # to store initial waveforms
+  mkdir -p plots/spectrograms/initial  # to store initial spectrograms
+  mkdir -p R                           # to store tangled functions:
+  mkdir -p csv/                        # to store generated CSVs.
   #+end_src
 
 - *Configure the working directory:*
@@ -322,6 +323,15 @@ Lower RMS, lower noise.
 subset(detailed_analysis, detailed_analysis$rms > 0.3448)$filename # Are all exceptionally clean files...
 subset(detailed_analysis, detailed_analysis$rms >= 0.29 & detailed_analysis$rms < 0.3)$filename # These are your average recordings...
 #+end_example
+* Step 3 - Cleaning up the Audio With Seewave
+** Compare a few spectrograms
+#+begin_src R :results silent
+# Spectrogram
+# Read file, parse filename
+file <- './data/cw007.wav'
+out_dir <- 'plots/spectrograms/initial'
+plot_spectrogram(file, out_dir)
+#+end_src
 
 * Pre-commit Clean-up:
   #+name:Remove Generated Files

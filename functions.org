@@ -175,6 +175,37 @@ plot_waveforms <- function(files, output_dir, bg = "white") {
 }
 #+end_src
 
+*** Plot Spectrogram using Seewave
+#+name: plot_spectrogram
+#+begin_src R
+plot_spectrogram <- function(file, output_dir, bg = 'white') {
+  # Spectrogram
+  # Read file, parse filename
+  name <- tools::file_path_sans_ext(basename(file))
+  spectrogram_name <- paste0('Spectrogram of ', name)
+  output_name <- paste0(output_dir, '/', name, '.png')
+
+  waveform <- readWave(file) # We need the non-normalized .wav file this time...
+
+  # Remove NAs:
+  waveform@left[!is.finite(waveform@left)] <- 0
+
+  # Plot for a duration:
+  duration <- 3 # seconds of data:
+  # Duration to samples
+  samples = duration * waveform@samp.rate # Samples = duration * samples/sec
+  sample_range <- c(initial = 0,
+                    final = samples) # initial to final...
+
+  png(filename = output_name, bg = bg)
+
+  seewave::spectro(waveform[sample_range['initial']:sample_range['final']],
+                   flim = c(0.3, 0.9),
+                   main = spectrogram_name)
+  dev.off()
+}
+#+end_src
+
 
 
 * Main File:
@@ -191,4 +222,6 @@ library(seewave)
 <<rms_amplitudes>>
 
 <<plot_waveform>>
+
+<<plot_spectrogram>>
 #+end_src
