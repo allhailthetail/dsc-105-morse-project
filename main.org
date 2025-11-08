@@ -300,6 +300,7 @@ ggplot(detailed_analysis, aes(zcr, rms_amplitude)) +
   labs(title = 'RMS Amplitude vs Zero-crossing Rate', x = 'ZCR', y = 'RMS Amplitude') +
   geom_point(color = 'skyblue')
 #+end_src
+
 o[[file:plots/general/zcr-vs-rms-amp.png]]
 
 #+begin_quote
@@ -358,7 +359,6 @@ detailed_analysis %>% filter(rms_amplitude < .22, prediction != "") %>%
   select(filename, duration, zcr, prediction, rms_amplitude) -> noisy_with_prediction
 
 noisy_with_prediction
-
 #+end_src
 
 #+attr_html: :width 50% :align right
@@ -489,10 +489,14 @@ frequencies below the target:
 file <- 'data/cw047.wav'
 out_file <- 'out/cw047_denoised_bworth.wav'
 
+bw <- 70
+center <- 610
+f_range <- c(center - bw/2, center + bw/2)
+
 denoised_wave <- file %>%
   tuneR::readWave() %>%
   wav_remove_NAs() %>%
-  bwfilter(from = 550, to= 650, output = "Wave") %>%
+  bwfilter(from = f_range[1], to = f_range[2], output = "Wave") %>%
   tuneR::normalize(unit = "32")
 
 tuneR::writeWave(denoised_wave, out_file)
@@ -504,7 +508,7 @@ out_file <- 'out/cw099_denoised_bworth.wav'
 denoised_wave <- file %>%
   tuneR::readWave() %>%
   wav_remove_NAs() %>%
-  bwfilter(from = 550, to= 650, output = "Wave") %>%
+  bwfilter(from = f_range[1], to = f_range[2], output = "Wave") %>%
   tuneR::normalize(unit = "32")
 
 tuneR::writeWave(denoised_wave, out_file)
@@ -515,7 +519,7 @@ out_file <- 'out/cw149_denoised_bworth.wav'
 denoised_wave <- file %>%
   tuneR::readWave() %>%
   wav_remove_NAs() %>%
-  bwfilter(from = 550, to= 650, output = "Wave") %>%
+  bwfilter(from = f_range[1], to = f_range[2], output = "Wave") %>%
   tuneR::normalize(unit = "32")
 
 tuneR::writeWave(denoised_wave, out_file)
