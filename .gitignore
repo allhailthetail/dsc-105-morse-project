@@ -6,6 +6,8 @@ tmp/
 # Project-specific Ignores:
 R/
 plots/
+out/
+csv/
 
 # R-specific
 .Rhistory

@@ -15,9 +15,12 @@
   #+begin_src bash :results silent
   mkdir -p plots/general               # to store plots...
   mkdir -p plots/waveforms/initial     # to store initial waveforms
+  mkdir -p plots/waveforms/denoised    # to store denoised waveforms
   mkdir -p plots/spectrograms/initial  # to store initial spectrograms
+  mkdir -p plots/spectrograms/denoised # to store initial spectrograms
   mkdir -p R                           # to store tangled functions:
   mkdir -p csv/                        # to store generated CSVs.
+  mkdir -p out/                        # to store generated wavs
   #+end_src
 
 - *Configure the working directory:*
@@ -42,13 +45,15 @@
 - The following dependencies need to be installed so that the audio processing can take place:
   #+name: imports
   #+begin_src R :results silent
+  library(tidyverse)
+  library(ggplot2)
   library(sonicscrewdriver)
   library(tuneR)
   source("R/project_functions.R")
   #+end_src
 
 * Step 1: Exploratory Data Analysis:
-** First, let's see how many files we're going to process and get some basic information about them:
+** File Operations with R:
 #+begin_src R
 "data" -> audio_files_path
 list.files(audio_files_path,
@@ -97,6 +102,17 @@ filename samples duration sampleRate stereo  pcm bitdepth
   3. There are more samples per file than would be efficient to graph as individual points,
      Luckily, tuneR has a special plot function that handles this...
 #+end_quote
+** Duration vs Samples
+#+begin_src R :file plots/general/samples-v-duration.png :results file graphics
+ggplot(basic_metadata, aes(duration, samples)) +
+  labs(x = 'Clip Duration (seconds)', y = 'Samples',
+       title = "Clip Samples vs Duration") +
+       theme(plot.title = element_text(hjust = 0.5)) +
+  geom_point()
+#+end_src
+
+Note how there's a perfectly linear relationship between duration and sample size.
+This should hold for all audio recorded at the same sampling rate.  Neat...
 
 ** Filling in Known Predictions:
 - Handy Regex: =(\d+),\s*(\w*) -> basic_metadata$prediction[\1] <- "\2"=
@@ -234,20 +250,13 @@ summary(basic_metadata$approx_wpm)
 
 #+begin_src R :file plots/general/wpm-approx.png :results file graphics
 # And, we'll visualize that as well...
-summary_wpm <- summary(basic_metadata$approx_wpm)
-mean_wpm <- summary_wpm["Mean"]
-q1_wpm <- summary_wpm["1st Qu."]
-q3_wpm <- summary_wpm["3rd Qu."]
-
-hist(x = basic_metadata$approx_wpm, xlab = "Words per Minute", main = "Estimated WPM values for Audio Clips", col = "lightblue")
-abline(v = mean_wpm, col = "red")
-abline(v = q1_wpm, col = "dark grey")
-abline(v = q3_wpm, col = "dark grey")
+bins <- round(1 + log(length(basic_metadata), b = 2))
+ggplot(basic_metadata, aes(approx_wpm)) +
+  labs(title = 'Estimated WPM values for Audio Clips', x = 'Words per Minute', y = 'Frequency') +
+  geom_histogram(fill = 'skyblue', color = 'white', linewidth = 1, binwidth = bins)
 #+end_src
 
-#+begin_quote
 So, most of our morse code data will be between 18 and 35.6 WPM...
-#+end_quote
 
 ** Export Initial Data to CSV
 #+begin_src R :results silent
@@ -286,7 +295,22 @@ Sure enough, CW092 looks quite terrible, whereas CW074 is quite clear. This is p
 plot(detailed_analysis$zcr ~ detailed_analysis$rms_amplitude,
      main = 'Zero-crossing rate compared with root-mean-square amplitude:',
      xlab = 'RMS amplitude', ylab = 'zero-crossing rate')
+
+ggplot(detailed_analysis, aes(zcr, rms_amplitude)) +
+  labs(title = 'RMS Amplitude vs Zero-crossing Rate', x = 'ZCR', y = 'RMS Amplitude') +
+  geom_point(color = 'skyblue')
 #+end_src
+o[[file:plots/general/zcr-vs-rms-amp.png]]
+
+#+begin_quote
+"The RMS energy provides a representation of the overall intensity or strength of a sound signal by taking into account both positive and negative excursions of the waveform, providing a more accurate measure of the signal's power..."
+
+"A higher zero crossing rate shows that the signal changes its direction frequently, suggesting the presence of higher-frequency components or a more dynamic waveform. Conversely, a lower zero crossing rate indicates a relatively smoother or constant waveform."
+  - [[https://towardsdatascience.com/decoding-the-symphony-of-sound-audio-signal-processing-for-musical-engineering-c66f09a4d0f5/][Towards Data Science]]
+
+
+This makes sense...
+#+end_quote
 
 #+name: ZCR of a clean file:
 #+begin_src R :results file graphics :file plots/general/zcr-initial-074.png
@@ -323,15 +347,249 @@ Lower RMS, lower noise.
 subset(detailed_analysis, detailed_analysis$rms > 0.3448)$filename # Are all exceptionally clean files...
 subset(detailed_analysis, detailed_analysis$rms >= 0.29 & detailed_analysis$rms < 0.3)$filename # These are your average recordings...
 #+end_example
+
 * Step 3 - Cleaning up the Audio With Seewave
-** Compare a few spectrograms
+** Selecting the worst of the worst also having predictors:
+But, I want a dirty file which I've been given a prediction for...
+Tidyverse to the rescue...
+
+#+begin_src R
+detailed_analysis %>% filter(rms_amplitude < .22, prediction != "") %>%
+  select(filename, duration, zcr, prediction, rms_amplitude) -> noisy_with_prediction
+
+noisy_with_prediction
+
+#+end_src
+
+#+attr_html: :width 50% :align right
+[[file:plots/waveforms/initial/cw047.png][cw047 Waveform]]
+
+#+attr_html: :width 50% :align right
+[[file:plots/waveforms/initial/cw099.png][cw099 Waveform]]
+
+#+attr_html: :width 50% :align right
+[[file:plots/waveforms/initial/cw149.png][cw149 Waveform]]
+
+Any of these look like excellent candidates!
+
+** Applying spline denoising - Seewave:
+
+#+begin_src R :results silent
+# Denoise cw047:
+file <- 'data/cw047.wav'
+out_file <- 'out/cw047_denoised_spline.wav'
+
+denoised_wave <- file %>%
+  tuneR::readWave() %>%
+  wav_remove_NAs() %>%
+  seewave::rmnoise(output = "Wave") %>%
+  tuneR::normalize(unit = "32")
+
+tuneR::writeWave(denoised_wave, out_file)
+
+file <- 'data/cw099.wav'
+out_file <- 'out/cw099_denoised_spline.wav'
+
+# Denoise cw149:
+denoised_wave <- file %>%
+  tuneR::readWave() %>%
+  wav_remove_NAs() %>%
+  seewave::rmnoise(output = "Wave") %>%
+  tuneR::normalize(unit = "32")
+
+tuneR::writeWave(denoised_wave, out_file)
+
+file <- 'data/cw149.wav'
+out_file <- 'out/cw149_denoised_spline.wav'
+
+denoised_wave <- file %>%
+  tuneR::readWave() %>%
+  wav_remove_NAs() %>%
+  seewave::rmnoise(output = "Wave") %>%
+  tuneR::normalize(unit = "32")
+
+tuneR::writeWave(denoised_wave, out_file)
+#+end_src
+
+*** Comparing the spectrograms:
+
 #+begin_src R :results silent
 # Spectrogram
 # Read file, parse filename
-file <- './data/cw007.wav'
+file <- './data/cw047.wav'
 out_dir <- 'plots/spectrograms/initial'
 plot_spectrogram(file, out_dir)
+
+#Denoised version
+file <- './out/cw047_denoised_spline.wav'
+out_dir <- 'plots/spectrograms/denoised'
+plot_spectrogram(file, out_dir)
 #+end_src
+
+#+attr_html: :width 50% :align right
+[[file:plots/spectrograms/initial/cw047.png][Initial Spectrogram - cw047]]
+
+#+attr_html: :width 50% :align right
+[[file:plots/spectrograms/denoised/cw047_denoised_spline.png][Denoised Spectrogram - cw047]]
+
+#+begin_src R :results silent
+# Spectrogram
+# Read file, parse filename
+file <- './data/cw099.wav'
+out_dir <- 'plots/spectrograms/initial'
+plot_spectrogram(file, out_dir)
+
+#Denoised version
+file <- './out/cw099_denoised_spline.wav'
+out_dir <- 'plots/spectrograms/denoised'
+plot_spectrogram(file, out_dir)
+#+end_src
+
+#+attr_html: :width 50% :align right
+[[file:plots/spectrograms/initial/cw099.png][Initial Spectrogram - cw099]]
+
+#+attr_html: :width 50% :align right
+[[file:plots/spectrograms/denoised/cw099_denoised_spline.png][Denoised Spectrogram - cw099]]
+
+
+#+begin_src R :results silent
+# Spectrogram
+# Read file, parse filename
+file <- './data/cw149.wav'
+out_dir <- 'plots/spectrograms/initial'
+plot_spectrogram(file, out_dir)
+
+#Denoised version
+file <- './out/cw149_denoised_spline.wav'
+out_dir <- 'plots/spectrograms/denoised'
+plot_spectrogram(file, out_dir)
+#+end_src
+
+#+attr_html: :width 50% :align right
+[[file:plots/spectrograms/initial/cw149.png][Initial Spectrogram - cw149]]
+
+#+attr_html: :width 50% :align right
+[[file:plots/spectrograms/denoised/cw149_denoised_spline.png][Denoised Spectrogram - cw149]]
+
+#+begin_quote
+This gave some interesting results:
+Giving these files a listen, it's obvious the high-frequency components were removed (as the spectrograms show).
+However, there's still a lot of low-frequency background noise still present.
+
+Seewave's [[https://cran.r-project.org/web/packages/seewave/refman/seewave.html#rmnoise][docs]] specifically note that this particular function - by itself - isn't great for removing noise at
+frequencies below the target:
+
+"Low frequency noise might not be removed out properly."
+#+end_quote
+
+** Applying a Butterworth filter - Seewave:
+
+#+begin_src R :results silent
+# Denoise cw047:
+file <- 'data/cw047.wav'
+out_file <- 'out/cw047_denoised_bworth.wav'
+
+denoised_wave <- file %>%
+  tuneR::readWave() %>%
+  wav_remove_NAs() %>%
+  bwfilter(from = 550, to= 650, output = "Wave") %>%
+  tuneR::normalize(unit = "32")
+
+tuneR::writeWave(denoised_wave, out_file)
+
+file <- 'data/cw099.wav'
+out_file <- 'out/cw099_denoised_bworth.wav'
+
+# Denoise cw149:
+denoised_wave <- file %>%
+  tuneR::readWave() %>%
+  wav_remove_NAs() %>%
+  bwfilter(from = 550, to= 650, output = "Wave") %>%
+  tuneR::normalize(unit = "32")
+
+tuneR::writeWave(denoised_wave, out_file)
+
+file <- 'data/cw149.wav'
+out_file <- 'out/cw149_denoised_bworth.wav'
+
+denoised_wave <- file %>%
+  tuneR::readWave() %>%
+  wav_remove_NAs() %>%
+  bwfilter(from = 550, to= 650, output = "Wave") %>%
+  tuneR::normalize(unit = "32")
+
+tuneR::writeWave(denoised_wave, out_file)
+#+end_src
+
+*** Comparing the spectrograms:
+
+#+begin_src R :results silent
+# Spectrogram
+# Read file, parse filename
+file <- './data/cw047.wav'
+out_dir <- 'plots/spectrograms/initial'
+plot_spectrogram(file, out_dir)
+
+#Denoised version
+file <- './out/cw047_denoised_bworth.wav'
+out_dir <- 'plots/spectrograms/denoised'
+plot_spectrogram(file, out_dir)
+#+end_src
+
+#+attr_html: :width 50% :align right
+[[file:plots/spectrograms/initial/cw047.png][Initial Spectrogram - cw047]]
+
+#+attr_html: :width 50% :align right
+[[file:plots/spectrograms/denoised/cw047_denoised_bworth.png][Denoised Spectrogram - cw047]]
+
+#+begin_src R :results silent
+# Spectrogram
+# Read file, parse filename
+file <- './data/cw099.wav'
+out_dir <- 'plots/spectrograms/initial'
+plot_spectrogram(file, out_dir)
+
+#Denoised version
+file <- './out/cw099_denoised_bworth.wav'
+out_dir <- 'plots/spectrograms/denoised'
+plot_spectrogram(file, out_dir)
+#+end_src
+
+#+attr_html: :width 50% :align right
+[[file:plots/spectrograms/initial/cw099.png][Initial Spectrogram - cw099]]
+
+#+attr_html: :width 50% :align right
+[[file:plots/spectrograms/denoised/cw099_denoised_bworth.png][Denoised Spectrogram - cw099]]
+
+#+begin_src R :results silent
+# Spectrogram
+# Read file, parse filename
+file <- './data/cw149.wav'
+out_dir <- 'plots/spectrograms/initial'
+plot_spectrogram(file, out_dir)
+
+#Denoised version
+file <- './out/cw149_denoised_bworth.wav'
+out_dir <- 'plots/spectrograms/denoised'
+plot_spectrogram(file, out_dir)
+#+end_src
+
+#+attr_html: :width 50% :align right
+[[file:plots/spectrograms/initial/cw149.png][Initial Spectrogram - cw149]]
+
+#+attr_html: :width 50% :align right
+[[file:plots/spectrograms/denoised/cw149_denoised_bworth.png][Denoised Spectrogram - cw149]]
+
+#+begin_quote
+This gave some interesting results:
+Giving these files a listen, it's obvious the high-frequency components were removed (as the spectrograms show).
+However, there's still a lot of low-frequency background noise still present.
+
+Seewave's [[https://cran.r-project.org/web/packages/seewave/refman/seewave.html#rmnoise][docs]] specifically note that this particular function - by itself - isn't great for removing noise at
+frequencies below the target:
+
+"Low frequency noise might not be removed out properly."
+#+end_quote
 
 * Pre-commit Clean-up:
   #+name:Remove Generated Files
