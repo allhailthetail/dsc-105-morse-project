@@ -205,12 +205,72 @@ plot_spectrogram <- function(file, output_dir, bg = 'white') {
   dev.off()
 }
 #+end_src
+** Butterworth Filtering in bulk:
+#+name: apply_bworth_filter
+#+begin_src R
+apply_bw_filter <- function(file, output_dir, freq_params = list(center = 610, bw = 70)) {
+  name <- tools::file_path_sans_ext(basename(file))
+  output_name <- paste0(output_dir, "/", name, "_bworth.wav")
+  
+  bw <- freq_params$bw
+  center <- freq_params$center
+  f_range <- c(center - bw/2, center + bw/2)
+  
+  denoised_wave <- file %>%
+    tuneR::readWave() %>%
+    wav_remove_NAs() %>%
+    bwfilter(from = f_range[1], to = f_range[2], output = "Wave") %>%
+    tuneR::normalize(unit = "32")
 
+  tuneR::writeWave(denoised_wave, output_name)
+}
+#+end_src
+
+** Automatic Notch Filter:
+Basically the same implementation as the Butterworth filter, but this includes
+automatic frequency detection of the strongest portion of the signal (hopefully the CW)
+
+#+name: apply_anf_filter
+#+begin_src R
+apply_anf_filter <- function(file, output_dir, bw = 70) {
+  name <- tools::file_path_sans_ext(basename(file))
+  output_name <- paste0(output_dir, "/", name, "_anf.wav")
+  
+  cleaned_wave <- file %>%
+    tuneR::readWave() %>%
+    wav_remove_NAs()
+  
+  cleaned_wave %>% seewave::cutw(from = 0.5, to = 3, output = 'Wave') %>%
+    seewave::spec(plot = FALSE) -> spectrum
+  
+  peak_index <- which.max(spectrum[, 2]) # Amplitude is column 2
+  center <- round(spectrum[peak_index, 1] * 1000)
+
+  f_range <- c(center - bw/2, center + bw/2)
+  
+  print(
+    cat('file:', name, '\n',
+        'Calculated Center Freq:', center,
+        'Range:', f_range)
+  )
+
+  denoised_wave <- cleaned_wave %>%
+    bwfilter(from = f_range[1], to = f_range[2], output = "Wave") %>%
+    tuneR::normalize(unit = "32")
+
+  tuneR::writeWave(denoised_wave, output_name)
+
+  print(
+    cat('wrote:', output_name)
+  )
+}
+#+end_src
 
 
 * Main File:
 Assemble/Tangle the main ~functions.R~ file:
 #+begin_src R :tangle R/project_functions.R
+library(tidyverse)
 library(tuneR)
 library(seewave)
 
@@ -224,4 +284,7 @@ library(seewave)
 <<plot_waveform>>
 
 <<plot_spectrogram>>
+
+<<apply_bworth_filter>>
+<<apply_anf_filter>>
 #+end_src
