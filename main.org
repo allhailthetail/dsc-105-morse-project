@@ -11,6 +11,9 @@
   (+org-pretty-mode t)
   #+end_src
 
+  #+RESULTS:
+  : t
+
 - Create directories for Plots, etc:
   #+begin_src bash :results silent
   mkdir -p plots/general               # to store plots...
@@ -42,6 +45,9 @@
   (org-babel-tangle-file "functions.org")
   #+end_src
 
+  #+RESULTS:
+  | /home/matthew/playground/morse-project/R/project_functions.R |
+
 - The following dependencies need to be installed so that the audio processing can take place:
   #+name: imports
   #+begin_src R :results silent
@@ -62,6 +68,9 @@ list.files(audio_files_path,
 length(audio_files) # number of files to analyze...
 #+end_src
 
+#+RESULTS:
+: [1] 200
+
 ** Gathering basic metadata:
 #+name: gather_basic_metadata
 #+begin_src R
@@ -79,6 +88,27 @@ head(basic_metadata, 2)
 #paste('Total duration:', total_duration_mins)
 
 #+end_src
+
+#+RESULTS: gather_basic_metadata
+#+begin_example
+filename            samples          duration          minAmp            medAmp               maxAmp            zcr           sampleRate
+ Length:200         Min.   : 37327   Min.   : 4.666   Min.   :-1.0000   Min.   :-0.0034242   Min.   :0.9939   Min.   :0.3034   Min.   :8000
+ Class :character   1st Qu.: 53932   1st Qu.: 6.742   1st Qu.:-0.9925   1st Qu.:-0.0008947   1st Qu.:1.0000   1st Qu.:0.3233   1st Qu.:8000
+ Mode  :character   Median : 73026   Median : 9.129   Median :-0.9814   Median :-0.0002655   Median :1.0000   Median :0.3470   Median :8000
+                    Mean   : 86519   Mean   :10.815   Mean   :-0.9669   Mean   :-0.0003932   Mean   :0.9998   Mean   :0.3787   Mean   :8000
+                    3rd Qu.:105775   3rd Qu.:13.222   3rd Qu.:-0.9521   3rd Qu.: 0.0001726   3rd Qu.:1.0000   3rd Qu.:0.4418   3rd Qu.:8000
+                    Max.   :216967   Max.   :27.121   Max.   :-0.8366   Max.   : 0.0016475   Max.   :1.0000   Max.   :0.4887   Max.   :8000
+   stereo           pcm             bitdepth
+ Mode :logical   Mode :logical   Min.   :32
+ FALSE:200       FALSE:200       1st Qu.:32
+                                 Median :32
+                                 Mean   :32
+                                 3rd Qu.:32
+                                 Max.   :32
+filename samples duration     minAmp        medAmp maxAmp       zcr sampleRate stereo   pcm bitdepth
+1 data/cw001.wav  139046   17.381 -0.9847528 -0.0005326462      1 0.4782230       8000  FALSE FALSE       32
+2 data/cw002.wav   92953   11.619 -0.9619644 -0.0009481643      1 0.3220552       8000  FALSE FALSE       32
+#+end_example
 
 #+RESULTS:
 #+begin_example
@@ -110,6 +140,9 @@ ggplot(basic_metadata, aes(duration, samples)) +
        theme(plot.title = element_text(hjust = 0.5)) +
   geom_point()
 #+end_src
+
+#+RESULTS:
+[[file:plots/general/samples-v-duration.png]]
 
 Note how there's a perfectly linear relationship between duration and sample size.
 This should hold for all audio recorded at the same sampling rate.  Neat...
@@ -208,6 +241,9 @@ abline(v = summary_duration["3rd Qu."], col = "dark grey")
 text(x = 20, y = 40, labels = mean_text, col = "black", cex = 1.5)
 #+end_src
 
+#+RESULTS:
+[[file:plots/general/dur-hist.png]]
+
 #+begin_quote
 Remember, this is a graphical representation of what summary already says:
 > summary(basic_metadata$duration)
@@ -231,6 +267,15 @@ numChars <- nchar(basic_metadata$prediction[27])
 numChars
 #+end_src
 
+#+RESULTS:
+: filename samples duration     minAmp        medAmp maxAmp       zcr sampleRate stereo   pcm bitdepth           prediction
+: 1  data/cw001.wav  139046   17.381 -0.9847528 -5.326462e-04      1 0.4782230       8000  FALSE FALSE       32                 <NA>
+: 6  data/cw006.wav  113453   14.182 -0.9739577  6.703265e-04      1 0.4540206       8000  FALSE FALSE       32                 <NA>
+: 7  data/cw007.wav  167199   20.900 -0.9541101 -6.145662e-04      1 0.3264553       8000  FALSE FALSE       32                 <NA>
+: 12 data/cw012.wav  176165   22.021 -0.8699628 -4.308391e-04      1 0.4597338       8000  FALSE FALSE       32                 <NA>
+: 27 data/cw027.wav  162155   20.269 -0.9961065 -3.667245e-05      1 0.3233079       8000  FALSE FALSE       32 63BTNYH7OJ7XKBNYOV49
+: [1] 20
+
 #+begin_quote
 Actually, I do see a pattern now that the data is visualized and in a table...
 Conveniently for us, every message seems to contain 20 characters. That means that we can get a good estimate of
@@ -248,6 +293,17 @@ head(basic_metadata)
 summary(basic_metadata$approx_wpm)
 #+end_src
 
+#+RESULTS:
+: filename samples duration     minAmp        medAmp maxAmp       zcr sampleRate stereo   pcm bitdepth           prediction approx_wpm
+: 1 data/cw001.wav  139046   17.381 -0.9847528 -5.326462e-04      1 0.4782230       8000  FALSE FALSE       32                 <NA>      13.81
+: 2 data/cw002.wav   92953   11.619 -0.9619644 -9.481643e-04      1 0.3220552       8000  FALSE FALSE       32                 <NA>      20.66
+: 3 data/cw003.wav   47526    5.941 -0.9958870 -2.228767e-03      1 0.3279889       8000  FALSE FALSE       32                 <NA>      40.40
+: 4 data/cw004.wav   59983    7.498 -0.9633315 -1.629695e-04      1 0.4852375       8000  FALSE FALSE       32                 <NA>      32.01
+: 5 data/cw005.wav   52381    6.548 -0.9701112 -5.018725e-05      1 0.3301006       8000  FALSE FALSE       32 FEFOFQUHYNZ3WONZRETF      36.65
+: 6 data/cw006.wav  113453   14.182 -0.9739577  6.703265e-04      1 0.4540206       8000  FALSE FALSE       32                 <NA>      16.92
+: Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+:    8.85   18.15   26.29   26.58   35.60   51.44
+
 #+begin_src R :file plots/general/wpm-approx.png :results file graphics
 # And, we'll visualize that as well...
 bins <- round(1 + log(length(basic_metadata), b = 2))
@@ -255,6 +311,9 @@ ggplot(basic_metadata, aes(approx_wpm)) +
   labs(title = 'Estimated WPM values for Audio Clips', x = 'Words per Minute', y = 'Frequency') +
   geom_histogram(fill = 'skyblue', color = 'white', linewidth = 1, binwidth = bins)
 #+end_src
+
+#+RESULTS:
+[[file:plots/general/wpm-approx.png]]
 
 So, most of our morse code data will be between 18 and 35.6 WPM...
 
@@ -269,11 +328,31 @@ write.csv(basic_metadata, file = "csv/basic_metadata.csv")
   detailed_analysis <- basic_metadata
   #+end_src
 
+  #+RESULTS:
+
 ** Exploring RMS amplitude / "roughness"
 #+begin_src R
 rms_amplitudes(basic_metadata$filename) -> detailed_analysis$rms_amplitude
 head(detailed_analysis)
 #+end_src
+
+#+RESULTS:
+#+begin_example
+filename samples duration     minAmp        medAmp maxAmp       zcr sampleRate stereo   pcm bitdepth           prediction approx_wpm
+1 data/cw001.wav  139046   17.381 -0.9847528 -5.326462e-04      1 0.4782230       8000  FALSE FALSE       32                 <NA>      13.81
+2 data/cw002.wav   92953   11.619 -0.9619644 -9.481643e-04      1 0.3220552       8000  FALSE FALSE       32                 <NA>      20.66
+3 data/cw003.wav   47526    5.941 -0.9958870 -2.228767e-03      1 0.3279889       8000  FALSE FALSE       32                 <NA>      40.40
+4 data/cw004.wav   59983    7.498 -0.9633315 -1.629695e-04      1 0.4852375       8000  FALSE FALSE       32                 <NA>      32.01
+5 data/cw005.wav   52381    6.548 -0.9701112 -5.018725e-05      1 0.3301006       8000  FALSE FALSE       32 FEFOFQUHYNZ3WONZRETF      36.65
+6 data/cw006.wav  113453   14.182 -0.9739577  6.703265e-04      1 0.4540206       8000  FALSE FALSE       32                 <NA>      16.92
+  rms_amplitude
+1     0.2412031
+2     0.3730158
+3     0.4234468
+4     0.2417161
+5     0.3066560
+6     0.2234551
+#+end_example
 
 Now, we should be able to see from the rms which are clearer and more noisy files:
 
@@ -284,6 +363,14 @@ max(detailed_analysis$rms_amplitude) -> high_rms
 detailed_analysis[detailed_analysis$rms_amplitude == low_rms,]
 detailed_analysis[detailed_analysis$rms_amplitude == high_rms,]
 #+end_src
+
+#+RESULTS:
+: filename samples duration     minAmp       medAmp maxAmp       zcr sampleRate stereo   pcm bitdepth prediction approx_wpm rms_amplitude
+: 92 data/cw092.wav   83671   10.459 -0.9122674 0.0001603664      1 0.4779434       8000  FALSE FALSE       32       <NA>      22.95     0.1978287
+: filename samples duration minAmp       medAmp    maxAmp       zcr sampleRate stereo   pcm bitdepth           prediction approx_wpm
+: 74 data/cw074.wav   81555   10.194     -1 -0.002191738 0.9989054 0.3170866       8000  FALSE FALSE       32 K7OOLNPK60WUC5PC6L0X      23.54
+:    rms_amplitude
+: 74      0.445678
 
 Sure enough, CW092 looks quite terrible, whereas CW074 is quite clear. This is probably what we're looking to optimize...
 
@@ -300,6 +387,9 @@ ggplot(detailed_analysis, aes(zcr, rms_amplitude)) +
   labs(title = 'RMS Amplitude vs Zero-crossing Rate', x = 'ZCR', y = 'RMS Amplitude') +
   geom_point(color = 'skyblue')
 #+end_src
+
+#+RESULTS:
+[[file:plots/general/zcr-vs-rms-amp.png]]
 
 o[[file:plots/general/zcr-vs-rms-amp.png]]
 
@@ -320,12 +410,18 @@ zcr_cw074 <- zcr(cw074)[1:150,]
 plot(zcr_cw074, main = 'Zero-crossing-rate for cw074.wav', type = 'l', col = 'green')
 #+end_src
 
+#+RESULTS: ZCR of a clean file:
+[[file:plots/general/zcr-initial-074.png]]
+
 #+name: ZCR of a noisy file:
 #+begin_src R :results file graphics :file plots/general/zcr-initial-092.png
 cw092 <- read_wav('data/cw092.wav')
 zcr_cw092 <- zcr(cw092)[1:150,]
 plot(zcr_cw092, main = 'Zero-crossing rate for cw092.wav', type = 'l', col = 'red')
 #+end_src
+
+#+RESULTS: ZCR of a noisy file:
+[[file:plots/general/zcr-initial-092.png]]
 
 #+name: ZCR Comparison:
 #+begin_src R :results file graphics :file plots/general/zcr_i_092_vs_074.png
@@ -342,6 +438,9 @@ lines(zcr_cw074, type = 'l', col = 'green')
 legend('bottomright', legend = c('cw092', 'cw074'), col = c('red', 'green'), lty = 1)
 #+end_src
 
+#+RESULTS: ZCR Comparison:
+[[file:plots/general/zcr_i_092_vs_074.png]]
+
 =Basically, higher ZCR -> higher static...=
 Lower RMS, lower noise.
 #+begin_example R
@@ -349,7 +448,7 @@ subset(detailed_analysis, detailed_analysis$rms > 0.3448)$filename # Are all exc
 subset(detailed_analysis, detailed_analysis$rms >= 0.29 & detailed_analysis$rms < 0.3)$filename # These are your average recordings...
 #+end_example
 
-* Step 3 - Cleaning up the Audio With Seewave
+* Step 3: - Cleaning up the Audio With Seewave
 ** Selecting the worst of the worst also having predictors:
 But, I want a dirty file which I've been given a prediction for...
 Tidyverse to the rescue...
@@ -360,6 +459,12 @@ detailed_analysis %>% filter(rms_amplitude < .22, prediction != "") %>%
 
 noisy_with_prediction
 #+end_src
+
+#+RESULTS:
+: filename duration       zcr           prediction rms_amplitude
+: 1 data/cw047.wav   24.473 0.4078372 EZRXQHXYJZ4AIZ15AFFM     0.1984195
+: 2 data/cw099.wav   24.261 0.4682134 8M9AGRKOW33JY9JC6P9E     0.2161841
+: 3 data/cw149.wav    8.826 0.4316003 A9N0QQ8IFFZ0Z89LYNFI     0.2180369
 
 #+attr_html: :width 50% :align right
 [[file:plots/waveforms/initial/cw047.png][cw047 Waveform]]
