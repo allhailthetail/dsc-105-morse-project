@@ -15,7 +15,9 @@
   #+begin_src bash :results silent
   mkdir -p plots/general                          # to store plots...
   mkdir -p plots/waveforms/{initial,denoised}     # to store initial waveforms
+  mkdir -p plots/waveforms/anf                    # .. for notch filtered audio
   mkdir -p plots/spectrograms/{initial,denoised}  # to store initial spectrograms
+  mkdir -p plots/spectrograms/anf                 # .. for anf files
   mkdir -p R                                      # to store tangled functions:
   mkdir -p csv/                                   # to store generated CSVs.
   mkdir -p out/{anf,bworth}                       # to store generated wavs
@@ -642,6 +644,79 @@ print(center)
 
 f_range <- c(center - bw/2, center + bw/2)
 #+end_src
+
+* Updating metadata
+Basically repeating the initial metadata gathering process, but for newly cleaned files:
+#+begin_src R
+"out/anf" -> audio_files_path
+list.files(audio_files_path,
+           full.names=TRUE) -> audio_files # this is a vec of all our audio files
+
+print("--------")
+print("Every file was processed?")
+length(audio_files) == 200
+print("--------")
+
+# Add in predictions from other df:
+anf_metadata <- wav_metadata_multi(audio_files)
+anf_metadata$prediction <- basic_metadata$prediction
+anf_metadata$approx_wpm<- basic_metadata$approx_wpm
+
+print("--------")
+print("rows match?")
+all.equal(colnames(basic_metadata), colnames(anf_metadata))
+print("--------")
+# preview:
+head(anf_metadata)
+
+# Separate Detailed Analysis:
+anf_detailed_analysis <- anf_metadata
+#+end_src
+
+** Generate updated waveforms:
+
+#+begin_src R :results silent
+# Generate plots for each:
+audio_files %>% plot_waveforms('plots/waveforms/anf')
+#+end_src
+
+* Visualizing the filtering results:
+** Updated RMSE vs ZCR:
+#+begin_src R :results graphics file :file plots/general/anf-zcr-vs-rms.png
+rms_amplitudes(anf_metadata$filename) -> anf_detailed_analysis$rms_amplitude
+
+ggplot(anf_detailed_analysis, aes(zcr, rms_amplitude)) +
+  labs(title = 'RMS Amplitude vs Zero-crossing Rate - Filtered Files', x = 'ZCR', y = 'RMS Amplitude') +
+  geom_point(color = 'skyblue')
+#+end_src
+
+#+begin_quote
+This is actually what we should expect...
+A nice [[https://www.youtube.com/watch?v=EycaSbIRx-0][video]] that describes how ZCR and rms energy "correlate"
+#+end_quote
+
+* Putting together a unified dataset:
+#+begin_src R
+
+anf_subset <- anf_detailed_analysis %>%
+  select(zcr, rms_amplitude)
+
+detailed_analysis$zcr_anf <- anf_subset$zcr
+detailed_analysis$rms_amplitude_anf <- anf_subset$rms_amplitude
+
+df_final <- detailed_analysis %>%
+  relocate(zcr_anf, .after = zcr) %>%
+  relocate(approx_wpm, .after = duration) %>%
+  relocate(rms_amplitude_anf, .after = rms_amplitude) %>%
+  select(-minAmp, -medAmp, -maxAmp, -samples, -sampleRate, -stereo, -pcm, -bitdepth) %>%
+
+  # Relocate 'prediction' to the very end of the final dataframe
+  relocate(prediction, .after = last_col())
+
+# 3. Write the final CSV file
+write.csv(df_final, file = 'csv/analysis.csv', row.names = FALSE)
+#+end_src
+
 
 * Pre-commit Clean-up:
   #+name:Remove Generated Files
