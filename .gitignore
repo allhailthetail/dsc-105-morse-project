@@ -21,3 +21,5 @@ csv/
 *.out
 *.run.xml
 *.synctex.gz
+
+abstract.pdf

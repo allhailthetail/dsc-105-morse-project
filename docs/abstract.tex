@@ -1,0 +1,74 @@
+\documentclass[letterpaper, 10pt]{article}
+
+% Packages that might be needed later:
+%\usepackage[square]{natbib}
+%\usepackage{amsmath}
+%\usepackage{amsfonts}
+%\usepackage{amssymb}
+%\usepackage{graphicx}
+
+% Configuration to use biber bibliography:
+\usepackage[backend=biber,style=ieee]{biblatex}
+\addbibresource{refs.bib}
+
+% configure margins...
+\usepackage{simplemargins}
+\setleftmargin{1.5in}
+\setrightmargin{1.5in}
+
+% configure link colors...
+\usepackage{xcolor}
+\definecolor{seaGreen}{RGB}{77, 182, 172}
+\definecolor{fireRed}{RGB}{229, 57, 53}
+
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=magenta,      
+	urlcolor=seaGreen,
+	citecolor=magenta,
+}
+
+
+
+\begin{document}
+	
+% Force the bibliography to print without inline refs:
+\nocite{*}
+	
+% Define page numbering scheme:
+\pagenumbering{arabic}
+
+\Large
+\begin{center}
+Simple Single Page Abstract template \\
+
+\hspace{10pt}
+
+% Author name and contact info
+\large
+Matthew Younger \\
+\small
+matthew.younger@lyon.edu
+
+\end{center}
+\hspace{10pt}
+
+\normalsize
+
+Digital signal processing is the manipulation of digitized signals for the purpose of extracting meaningful information.
+Ecoacoustics is a specialized sub-discipline, which has led to several interesting techniques which enable scientists to process large amounts of data in order to better understand the environment.
+As a sub-discipline, Ecoacoustics borrows heavily from the more broad field of audio processing. However, the methods they've developed - which are unique to their discipline - seem to remain relatively niche.
+
+The goal of this study was to conduct basic exploratory data analysis on Morse code audio files (CW), and to employ the same libraries and functions that ecoacoustic researchers have developed for their work, for the purpose of cleaning synthetically-generated CW audio. 
+The results of the project as of writing show that the libraries, while not perfect, can be employed effectively for the purpose of visualizing and cleaning data with minimal manual intervention once adapted for the purpose. Over four-hundred visualizations and modified audio \textit{WAV} files were generated in a time-efficient, accurate, and repeatable manner. This alone is a significant time savings over relying on audio editing tools. Similarly, Fourier transformations can be applied to discern the center frequency of the signal apart from low or high-frequency background noise, \textit{and} act on this information by applying a notch filter that automatically tunes to the strongest frequency.
+
+At present, some of the metrics originally proposed for study seemed unnecessary, primarily because the \texttt{zero-crossing rate}, \texttt{RMS Amplitude}, \texttt{Fourier transform}, and Seewave's \texttt{Butterworth} filter were sufficiently effective. In even the worst cases where the tones were hushed and the coding rate was very rapid, the filter produced a visually and audibly discernible waveform. In terms of time constraints, modifying the libraries' behavior with helper functions to cope with partially corrupted files and/or undefined behavior proved more time-consuming than initially anticipated.
+The next steps for future study are to evaluate the \texttt{ZCR} and \texttt{RMS Amplitude} across \textit{windows} or segments of each de-noised audio file, comparing the measured value to that of a perfect sine wave at the measured frequency (which the libraries include tools for). The result should show which discrete segments contain tones or absence of tones, which combined should allow the signal to be fully deciphered programmatically, which was the stretch goal. 
+
+Concluding, the results thus far show that the packages from ecoacoustics are useful for the task; however, the more novel metrics that otherwise measure biological signals seem - at this time - to be beyond what's required for analyzing CW signals. This was a surprise given the possibly corrupted nature of the files and the ccomplete unintelligibility of the outlier samples. Additionally, exploring the metadata with R was informative and led to realizations that would've taken much longer to arrive at using more general audio tools alone.
+
+\AtEndDocument{\printbibliography}
+
+\end{document}

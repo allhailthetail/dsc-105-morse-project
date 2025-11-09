@@ -301,16 +301,13 @@ ggplot(detailed_analysis, aes(zcr, rms_amplitude)) +
   geom_point(color = 'skyblue')
 #+end_src
 
-o[[file:plots/general/zcr-vs-rms-amp.png]]
-
 #+begin_quote
 "The RMS energy provides a representation of the overall intensity or strength of a sound signal by taking into account both positive and negative excursions of the waveform, providing a more accurate measure of the signal's power..."
 
 "A higher zero crossing rate shows that the signal changes its direction frequently, suggesting the presence of higher-frequency components or a more dynamic waveform. Conversely, a lower zero crossing rate indicates a relatively smoother or constant waveform."
   - [[https://towardsdatascience.com/decoding-the-symphony-of-sound-audio-signal-processing-for-musical-engineering-c66f09a4d0f5/][Towards Data Science]]
 
-
-This makes sense...
+Their distribution os somewhat odd, since they measure things that otherwise shouldn't be related.
 #+end_quote
 
 #+name: ZCR of a clean file:
@@ -626,6 +623,7 @@ for (file in files) {
 #+begin_src R
 file <- 'data/cw009.wav'
 name <- tools::file_path_sans_ext(basename(file))
+output_dir <- 'out/anf'
 output_name <- paste0(output_dir, "/", name, "_anf.wav")
 
 cleaned_wave <- file %>%
@@ -717,6 +715,15 @@ df_final <- detailed_analysis %>%
 write.csv(df_final, file = 'csv/analysis.csv', row.names = FALSE)
 #+end_src
 
+* Generating the Abstract:
+#+begin_src sh :results output
+cd docs
+biber ./abstract
+pdflatex ./abstract.tex
+biber ./abstract
+pdflatex ./abstract.tex # Biber requires running 2x
+#+end_src
+
 
 * Pre-commit Clean-up:
   #+name:Remove Generated Files
@@ -726,9 +733,13 @@ write.csv(df_final, file = 'csv/analysis.csv', row.names = FALSE)
   rm -r R      # Dir of supporting functions
   rm -r .Rhistory # R history file
   rm -r out
+
+  # Clean up LaTeX stuff:
+  cd docs
+  deltex
   #+end_src
 
- Clean up Babel output blocks:
+ #+name: Clean up Babel output blocks
  #+begin_example elisp
  (+org/remove-result-blocks)
  #+end_example
