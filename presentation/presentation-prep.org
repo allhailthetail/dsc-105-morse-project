@@ -24,9 +24,6 @@ Tangle =functions.org= for use in this project, also:
 (org-babel-tangle-file "../functions.org" "./presentation/R/project_functions.R")
 #+end_src
 
-#+RESULTS:
-| /home/matthew/playground/morse-project/R/project_functions.R | /home/matthew/playground/morse-project/presentation/R/project_functions.R |
-
 These will be used to permanently hold the illustrations for the presentation.
 #+name: Create plots directories
 #+begin_src bash
@@ -249,9 +246,6 @@ read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 2), main = "Timber Wolf Call")
 #+end_src
 
-#+RESULTS: spectrogram: Timber Wolf Call
-[[file:img/timber-wolf.png]]
-
 #+name: spectrogram Mockingbird Call
 #+begin_src R :results file graphics :file img/mockingbird.png
 file <- 'data/wildlife/mockingbird.wav'
@@ -259,9 +253,6 @@ read_wav(file) -> wav_clean
 wav_clean <- rmnoise(wav_clean, output = "Wave")
 spectro(wav_clean, flim = c(1.75, 5.5), main = "Northern Mockingbird Call")
 #+end_src
-
-#+RESULTS: spectrogram: Mockingbird Call
-[[file:img/mockingbird.png]]
 
 * Morse Project/Anthropogenic Sounds
 
