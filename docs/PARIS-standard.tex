@@ -1,0 +1,60 @@
+\documentclass[11pt]{article}
+
+%% Page Dimensions %%
+\usepackage[letterpaper, margin=1in]{geometry} %% Letter page setup
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Packages %%
+\usepackage{amsmath} % Necessary
+\usepackage{amssymb} % Necessary
+\usepackage{amsthm} % Necessary
+\usepackage{amsfonts} % Necessary
+\usepackage{hyperref} % Automatically turns all internal references to links
+\usepackage{fancyhdr} % Allows for headers and footers
+
+\newcounter{qcounter}
+\setcounter{qcounter}{1}
+\setlength{\parindent}{0pt}
+
+\newcommand{\q}{\newpage\section*{Question {\theqcounter}} \stepcounter{qcounter}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagestyle{fancy}
+\chead{Understanding the PARIS Standard in CW \\ Matthew Younger \today}
+
+\begin{document}
+	\section*{Calculating the time unit $\tau$:}
+	
+	CW relies on a tightly-controlled spacing of $1$'s and $0$'s in order to convey a message accurately. Fudging this would mean an unintelligible message. "Did I code \texttt{I (**)} or \texttt{E E (* *)}? As such, folks decided that the the spacing of all distinct morse elements is as follows:
+	
+	\vspace{10pt}
+	
+		% Table of elements and units in terms of Tau:
+		\begin{tabular}{|c|l|}
+			\hline 
+			 element & units \\
+			\hline
+			dot & $\tau$ \\
+			dash & $3 \tau$ \\
+			\textless e-spc\textgreater & $\tau$\\
+			\textless c-spc\textgreater & $3 \tau$ \\
+			\textless w-spc\textgreater & $7 \tau$ \\
+			\hline
+		\end{tabular}
+		
+	\vspace{10pt}
+	
+	% Now, show how we arrive at 6/5 * 1/WPM = Tau...
+	% Include a graph of Tau vs WPM to show asymtope... 
+	Now, to why it's called the PARIS standard: \\	
+	The word PARIS has $43\tau + 7\tau = 50\tau$ elements in it. Convince yourself of this, which isn't terribly hard.
+	The implication is that the \textit{speed} that you send this word at, your $n$ \textbf{WPM}, relates to $\tau$:
+	
+	$ n_{wpm} = \frac{\textit{total time}}{\textit{time per word}} \textit{words}
+	= \frac{60sec}{T_{word}} (1_{word})
+	= \frac{60}{50\tau} $ \\
+	$ \therefore \hspace*{10pt} 
+	\tau = \frac{6}{5n}$
+	
+\end{document}

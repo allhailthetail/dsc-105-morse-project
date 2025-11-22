@@ -44,8 +44,10 @@ setwd(projectRoot)
 #+name: import dependencies
 #+begin_src R
 source("R/project_functions.R")
+library(tidyverse)
 library(seewave)
 library(tuneR)
+library(ggplot2)
 #+end_src
 
 Project Cleanup
@@ -55,7 +57,7 @@ Project Cleanup
   "Cleans up trivial/generated project files"
   (interactive) ;; make this available with M-x
   (+org/remove-result-blocks 0) ;; remove result blocks back to the beginning...
-  (delete-directory project-dir t) ;; delete src directory
+  ;;(delete-directory project-dir t) ;; delete src directory
   (delete-directory "R" t) ;; Delete R functions derived from one dir up.
   (delete-directory "img" t)) ;; Delete the img folder
   #+end_src
@@ -69,30 +71,65 @@ Tangle all files automatically
 
 :END:
 
+* Intro - Raw Plot of CW001:
+#+begin_src R :results file graphics :file img/cw001_raw.png
+tuneR::readWave("../data/cw001.wav") %>%
+  tuneR::plot(main = "Raw Plot of `cw001`")
+#+end_src
+
+* Intro - Normalized Plot of CW001:
+#+begin_src R :results file graphics :file img/cw001_norm.png
+library(tidyverse)
+tuneR::readWave("../data/cw001.wav") %>%
+  tuneR::normalize() %>%
+  plot(main = "normalized waveform of `cw001`")
+
+#+end_src
+
+* Intro - Clean, Normalized Plot of CW009:
+#+begin_src R :results file graphics :file img/cw009_norm.png
+library(tidyverse)
+tuneR::readWave("../data/cw009.wav") %>%
+  wav_remove_NAs() %>%
+  tuneR::normalize() -> cw009
+  plot(cw009, main = "normalized waveform of `cw009`")
+
+#+end_src
+
+* Analysis - Normalized Plot of CW047:
+#+begin_src R :results file graphics :file img/cw047_norm.png
+library(tidyverse)
+tuneR::readWave("../data/cw047.wav") %>%
+  wav_remove_NAs() %>%
+  tuneR::normalize() -> cw047
+  plot(cw047, main = "normalized waveform of `cw047`")
+
+#+end_src
+
 * Morse Project/Music Notes Spectrograms
 
-#+name: spectrogram: A flat piano
+#+name: spectrogram A flat piano
 #+begin_src R :results file graphics :file img/a-flat-note-piano.png
 file <- 'data/notes/a-flat-note-piano.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 7), main = "Piano - A Flat")
 #+end_src
 
-#+name: spectrogram: B flat piano
+#+name: spectrogram B flat piano
 #+begin_src R :results file graphics :file img/b-flat-note-piano.png
 file <- 'data/notes/b-flat-note-piano.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 7), main = "Piano - B Flat")
 #+end_src
 
-#+name: spectrogram: C sharp piano
+#+name: spectrogram C sharp piano
 #+begin_src R :results file graphics :file img/c-sharp-note-piano.png
 file <- 'data/notes/c-sharp-note-piano.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 7), main = "Piano - C Sharp")
 #+end_src
 
-#+name: spectrogram: D sharp piano
+#+name: spectrogram D sharp piano
 #+begin_src R :results file graphics :file img/d-sharp-note-piano.png
 file <- 'data/notes/d-sharp-note-piano.wav'
 read_wav(file) -> wav_clean
@@ -106,14 +143,14 @@ read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 7), main = "Piano - E Note")
 #+end_src
 
-#+name: spectrogram: F sharp piano
+#+name: spectrogram F sharp piano
 #+begin_src R :results file graphics :file img/f-sharp-note-piano.png
 file <- 'data/notes/f-sharp-note-piano.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 7), main = "Piano - F Sharp")
 #+end_src
 
-#+name: spectrogram: G sharp piano
+#+name: spectrogram G sharp piano
 #+begin_src R :results file graphics :file img/g-sharp-note-piano.png
 file <- 'data/notes/g-sharp-note-piano.wav'
 read_wav(file) -> wav_clean
@@ -122,21 +159,21 @@ spectro(wav_clean, flim = c(0, 7), main = "Piano - G Sharp")
 
 * Morse Project/Music Piano Chord Spectrograms
 
-#+name: spectrogram: High C piano chord
+#+name: spectrogram High C piano chord
 #+begin_src R :results file graphics :file img/high-c-chord-piano.png
 file <- 'data/chords/high-c-piano.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 7), main = "High C Piano Chord")
 #+end_src
 
-#+name: spectrogram: D sharp piano chord
+#+name: spectrogram D sharp piano chord
 #+begin_src R :results file graphics :file img/d-sharp-chord-piano.png
 file <- 'data/chords/d-sharp-piano.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 7), main = "D Sharp Piano Chord")
 #+end_src
 
-#+name: spectrogram: C minor piano chord
+#+name: spectrogram C minor piano chord
 #+begin_src R :results file graphics :file img/d-sharp-chord-piano.png
 file <- 'data/chords/c-minor-piano.wav'
 read_wav(file) -> wav_clean
@@ -145,35 +182,35 @@ spectro(wav_clean, flim = c(0, 7), main = "C Minor Piano Chord")
 
 * Morse Project/Music Guitar Chord Spectrograms
 
-#+name: spectrogram: C Major guitar chord
+#+name: spectrogram C Major guitar chord
 #+begin_src R :results file graphics :file img/c-major-chord-guitar.png
 file <- 'data/chords/c-major-guitar.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 1), main = "C Major Guitar Chord")
 #+end_src
 
-#+name: spectrogram: C Minor guitar chord
+#+name: spectrogram C Minor guitar chord
 #+begin_src R :results file graphics :file img/c-minor-chord-guitar.png
 file <- 'data/chords/c-minor-guitar.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 4), main = "C Minor Guitar Chord")
 #+end_src
 
-#+name: spectrogram: D Sharp guitar chord
+#+name: spectrogram D Sharp guitar chord
 #+begin_src R :results file graphics :file img/d-sharp-chord-guitar.png
 file <- 'data/chords/d-sharp-guitar.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 2.5), main = "D Sharp Guitar Chord")
 #+end_src
 
-#+name: spectrogram: E Major 7th fret guitar chord
+#+name: spectrogram E Major 7th fret guitar chord
 #+begin_src R :results file graphics :file img/e-maj7-chord-guitar.png
 file <- 'data/chords/emaj7-guitar.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 3), main = "E Major 7 Guitar Chord")
 #+end_src
 
-#+name: spectrogram: A Major guitar chord
+#+name: spectrogram A Major guitar chord
 #+begin_src R :results file graphics :file img/a-maj-chord-guitar.png
 file <- 'data/chords/amaj-guitar.wav'
 read_wav(file) -> wav_clean
@@ -182,14 +219,14 @@ spectro(wav_clean, flim = c(0, 3), main = "A Major Guitar Chord")
 
 * Morse Project/Poetry Spectrogram
 
-#+name: spectrogram: Patrick Stewart Sonnet 18
+#+name: spectrogram Patrick Stewart Sonnet 18
 #+begin_src R :results file graphics :file img/p-stewart-sonnet-18.png
 file <- 'data/voice/patrick-stewart-sonnet-18.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 7), main = "Patrick Stewart Sonnet 18", tlim = c(0,15))
 #+end_src
 
-#+name: spectrogram: Self Sonnet 18
+#+name: spectrogram Self Sonnet 18
 #+begin_src R :results file graphics :file img/self-sonnet-18.png
 file <- 'data/voice/sonnet-18.wav'
 read_wav(file) -> wav_clean
@@ -198,21 +235,24 @@ spectro(wav_clean, flim = c(0, 7), main = "Sonnet 18", tlim = c(0,14))
 
 * Morse Project/Wildlife Spectrogram
 
-#+name: spectrogram: Wild Turkey Call
+#+name: spectrogram Wild Turkey Call
 #+begin_src R :results file graphics :file img/wild-turkey.png
 file <- 'data/wildlife/turkey.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 5), main = "Wild Turkey Call")
 #+end_src
 
-#+name: spectrogram: Timber Wolf Call
+#+name: spectrogram Timber Wolf Call
 #+begin_src R :results file graphics :file img/timber-wolf.png
 file <- 'data/wildlife/timber-wolf-1.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 2), main = "Timber Wolf Call")
 #+end_src
 
-#+name: spectrogram: Mockingbird Call
+#+RESULTS: spectrogram: Timber Wolf Call
+[[file:img/timber-wolf.png]]
+
+#+name: spectrogram Mockingbird Call
 #+begin_src R :results file graphics :file img/mockingbird.png
 file <- 'data/wildlife/mockingbird.wav'
 read_wav(file) -> wav_clean
@@ -220,18 +260,40 @@ wav_clean <- rmnoise(wav_clean, output = "Wave")
 spectro(wav_clean, flim = c(1.75, 5.5), main = "Northern Mockingbird Call")
 #+end_src
 
+#+RESULTS: spectrogram: Mockingbird Call
+[[file:img/mockingbird.png]]
+
 * Morse Project/Anthropogenic Sounds
 
-#+name: spectrogram: Police Siren
+#+name: spectrogram Police Siren
 #+begin_src R :results file graphics :file img/police-siren.png
 file <- 'data/anthro/police-siren.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, flim = c(0, 2), main = "Police Siren")
 #+end_src
 
+
 #+name: spectrogram - Church Choir
 #+begin_src R :results file graphics :file img/emmanuel.png
 file <- 'data/anthro/emmanuel-full.wav'
 read_wav(file) -> wav_clean
 spectro(wav_clean, tlim = c(35,57), flim = c(0, 2), main = "Choir - Emmanuel")
+#+end_src
+
+* Exploring Coding Rate
+#+begin_src R :results graphics file :file img/tau_vis.png
+wpm <- 1:40
+T <- (6/5) * wpm^-1
+
+df = data.frame(wpm = wpm, T = T)
+
+## plot(T ~ wpm)
+## title("Fundamental unit tau vs WPM")
+
+ggplot(df, aes(x = wpm, y = T)) +
+  geom_point() +
+  labs(title = "Tau versus WPM",
+       x = "Words per Minute",
+       y = "Tau") +
+  theme_light()
 #+end_src

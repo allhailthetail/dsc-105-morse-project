@@ -181,6 +181,34 @@ This should hold for all audio recorded at the same sampling rate.  Neat...
     basic_metadata$prediction[199] <- "ZEA2Y4H4NX6JST0J3IY8"
     #+end_src
 
+** Analysis of files with predictions:
+#+begin_src R :file plots/general/density-wpm.png :results file graphics
+basic_metadata %>%
+  select(filename, duration, prediction, approx_wpm) %>%
+  filter(prediction != "") %>%
+  arrange(approx_wpm) -> files_have_prediction
+
+median_wpm <- median(files_have_prediction$approx_wpm)
+mean_wpm <- mean(files_have_prediction$approx_wpm)
+
+files_have_prediction %>% ggplot(aes(x = approx_wpm)) +
+  xlim(0,60) +
+  geom_density(fill = "steelblue", alpha = 0.7, color = "darkblue") -> p
+
+p %>% + geom_vline(xintercept = median_wpm, linetype = "dashed", color = "green") -> p1
+
+
+p1 %>% + labs(
+    title = "Density Plot of Approximate Words Per Minute (WPM)",
+    subtitle = paste0("Median: ", round(median_wpm)),
+    x = "Approximate WPM",
+    y = "Density"
+  ) +
+  theme_minimal() -> p2
+
+p2
+#+end_src
+
 ** Bulk generate initial waveforms:
 [[file:~/playground/morse-project/plots/waveforms/initial/][Output Directory]]
 #+begin_src R :results silent
