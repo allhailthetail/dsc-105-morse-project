@@ -5,8 +5,6 @@
 #+STARTUP: indent overview hideblocks entitiespretty
 #+PROPERTY: header-args:elisp :results output
 #+PROPERTY: header-args:R :session *R* :results output
-#+PROPERTY: header-args:python :noweb yes :comments noweb :results output
-#+PROPERTY: header-args:cpp :noweb yes :comments noweb :results output
 #+PROPERTY: header-args:sh :results silent
 
 :ELISP-HELPERS:
@@ -69,6 +67,28 @@ Tangle all files automatically
 :END:
 
 * EDA - Characterizing the Data
+** Checking for corruption:
+#+attr_html: :width 50% :align left
+[[file:~/playground/morse-project/plots/general/samples-v-duration.png][Samples versus Duration]]
+
+#+begin_quote
+There was some question of corruption in the data, per the poster of the dataset. I thought this was a clever way to speculate that the majority of the data was in the file...
+
+Since the sample rate for each file was fixed at 8000 samples/second, we expect a linear relationship between samples and duration, which it is...
+#+end_quote
+
+** The coding rate:
+#+attr_html: :width 50% :align left
+[[file:~/playground/morse-project/plots/general/density-wpm.png][Words per Minute Density plot]]
+
+#+begin_quote
+This was an important graphic. For one, WPM wasn't provided, it was actually derived from the data, noticing that each file contained the same number of characters, and the length of the file was known...
+
+From this information, it can be seen that there is a bimodal distribution, and there's a bit of a hump on the lower end...  So, there are many samples near the median (28), which is a typical speed, but clustered in two groups, on the slower side and on the faster side. We also got a few samples at a very rapid speed of ~50WPM, which is on the edge of intelligibility for most people.
+
+All without actually listening to a single file...
+#+end_quote
+
 ** Edge Cases
 As guest lecturer Brandon Smith emphasized, edge cases are important. Where are they?
 
@@ -117,6 +137,10 @@ text(x = 2.5, y = -0.5, labels = "R", col = "red", cex = 4, font = 4)
 #+end_src
 
 * Conclusion:
-There are then two approaches to understanding these audio files and approaching decoding them:
-1. We can use fourier transforms and image processing to predict thier contents
-2. Notch filtering can be applied (given the known or derived tone frequency) and traditional decoding methods can be used.
+I used the libraries I originally selected to analyze the dataset I chose. I avoided the temptation to switch to other tools and stray from the objective, which at times took some strength. I found many more resources and tutorials for doing this sort of thing in Python, but these are better documented as far as how they actually work. This was fortunate, since I did have to do a fair bit of customization to get the graphics and their specific functions to work well for my purpose, which can be seen in [[file:~/playground/morse-project/R/project_functions.R][functions.R]]
+
+I didn't get as far as developing the algorithms to decode the cleaned audio (by following the amplitude of the waveform). Once the audio is cleaned, the frequency is trivial, because the tone is the only high-amplitude component present. This matches up with real-world decoding on radio hardware.
+
+The task of using image recognition to decode the fourier-transformed visualizations is much more interesting, and this seems to be what other researchers are doing, also. I'm not exactly sure why... Perhaps for very broad noise, or noise close to the signal's frequency, more advanced approaches are necessary?
+
+Doing research with the tools I used takes longer than off-the-shelf solutions. But, the results I got are very repeatable and were well backed up at each step of the process, which was a strength. Also, anyone can download these utilities free of charge and verify my results.
