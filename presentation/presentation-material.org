@@ -16,17 +16,23 @@ Org Customizations
 (org-mode-restart) ;; Ensures the headers get read if created from template.
 #+end_src
 
+#+RESULTS: Emacs tweaks
+
 Tangle =functions.org= for use in this project, also:
 #+name: tangle functions.org
 #+begin_src elisp
 (org-babel-tangle-file "../functions.org" "./presentation/R/project_functions.R")
 #+end_src
 
+#+RESULTS: tangle functions.org
+
 These will be used to permanently hold the illustrations for the presentation.
 #+name: Create plots directories
 #+begin_src bash
 mkdir -p ./img
 #+end_src
+
+#+RESULTS: Create plots directories
 
 Adjusted to the subdir for the presentation:
 #+name: initialize R
@@ -36,6 +42,8 @@ paste0(Sys.getenv("MORSE_ROOT"), "presentation/") -> projectRoot
 setwd(projectRoot)
 #+end_src
 
+#+RESULTS: initialize R
+
 #+name: import dependencies
 #+begin_src R
 source("R/project_functions.R")
@@ -44,6 +52,8 @@ library(seewave)
 library(tuneR)
 library(ggplot2)
 #+end_src
+
+#+RESULTS: import dependencies
 
 Project Cleanup
 #+name: Project Cleanup Interactive
@@ -64,11 +74,13 @@ Tangle all files automatically
 (org-babel-tangle) ;; tangle everything as a last step...
 #+end_src
 
+#+RESULTS: Tangle All Blocks
+
 :END:
 
 * EDA - Characterizing the Data
 ** Checking for corruption:
-#+attr_html: :width 50% :align left
+#+attr_html: :width 30% :align left
 [[file:~/playground/morse-project/plots/general/samples-v-duration.png][Samples versus Duration]]
 
 #+begin_quote
@@ -78,7 +90,7 @@ Since the sample rate for each file was fixed at 8000 samples/second, we expect 
 #+end_quote
 
 ** The coding rate:
-#+attr_html: :width 50% :align left
+#+attr_html: :width 30% :align left
 [[file:~/playground/morse-project/plots/general/density-wpm.png][Words per Minute Density plot]]
 
 #+begin_quote
@@ -104,12 +116,18 @@ text(0.75, -0.5, label = "G", col = "red", cex = 4, font = 4)
 text(1.1, -0.5, label = "8", col = "red", cex = 4, font = 4)
 #+end_src
 
+#+RESULTS:
+[[file:img/cw176_norm.png]]
+
 *** [[file:~/playground/morse-project/main.org::Noisiest Files with Predictors:][Noisiest]]
 #+begin_src R :results file graphics :file img/cw047_norm.png
 tuneR::readWave("../data/cw047.wav") %>%
   tuneR::normalize() %>%
   plot(main = "Original Waveform of `cw047`", xlim = c(0,3.25), col = "steelblue", ylab = "Amplitude")
 #+end_src
+
+#+RESULTS:
+[[file:img/cw047_norm.png]]
 
 * Applying Seewave's Fourier Transform:
 #+begin_src R :results file graphics :file img/cw047_raw_spectro.png
@@ -124,6 +142,9 @@ text(x = 1.5, y = 0.5, labels = "Z", col = "red", cex = 4, font = 4)
 text(x = 2.5, y = 0.5, labels = "R", col = "red", cex = 4, font = 4)
 #+end_src
 
+#+RESULTS:
+[[file:img/cw047_raw_spectro.png]]
+
 * Applying the Filtering Script:
 Clearly, the notch filter I devised using TuneR and Seewave is highly effective...
 
@@ -135,6 +156,9 @@ text(x = 0.7, y = -0.5, labels = "E", col = "red", cex = 4, font = 4)
 text(x = 1.5, y = -0.5, labels = "Z", col = "red", cex = 4, font = 4)
 text(x = 2.5, y = -0.5, labels = "R", col = "red", cex = 4, font = 4)
 #+end_src
+
+#+RESULTS:
+[[file:img/cw047_filtered.png]]
 
 * Conclusion:
 I used the libraries I originally selected to analyze the dataset I chose. I avoided the temptation to switch to other tools and stray from the objective, which at times took some strength. I found many more resources and tutorials for doing this sort of thing in Python, but these are better documented as far as how they actually work. This was fortunate, since I did have to do a fair bit of customization to get the graphics and their specific functions to work well for my purpose, which can be seen in [[file:~/playground/morse-project/R/project_functions.R][functions.R]]
