@@ -79,21 +79,6 @@ head(basic_metadata, 2)
 
 #+end_src
 
-#+RESULTS:
-#+begin_example
-filename            samples          duration        sampleRate     stereo          pcm             bitdepth
- Length:200         Min.   : 37327   Min.   : 4.666   Min.   :8000   Mode :logical   Mode:logical   Min.   :8
- Class :character   1st Qu.: 53932   1st Qu.: 6.742   1st Qu.:8000   FALSE:200       TRUE:200       1st Qu.:8
- Mode  :character   Median : 73026   Median : 9.129   Median :8000                                  Median :8
-                    Mean   : 86519   Mean   :10.815   Mean   :8000                                  Mean   :8
-                    3rd Qu.:105775   3rd Qu.:13.222   3rd Qu.:8000                                  3rd Qu.:8
-                    Max.   :216967   Max.   :27.121   Max.   :8000                                  Max.   :8
-filename samples duration sampleRate stereo  pcm bitdepth
-1 data/cw001.wav  139046   17.381       8000  FALSE TRUE        8
-2 data/cw002.wav   92953   11.619       8000  FALSE TRUE        8
-[1] "Total duration: 36.0497166666667"
-#+end_example
-
 #+begin_quote
 - So, there's not a lot to see, but already we can draw some conclusions:
   1. We're dealing with approximately 36 minutes worth of data in total.
