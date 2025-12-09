@@ -96,7 +96,7 @@ tuneR::readWave("../data/cw047.wav") %>%
 tuneR::readWave("../data/cw047.wav") %>%
   wav_remove_NAs() %>%
   tuneR::normalize() %>%
-  spectro(flim = c(0.4, 0.8), tlim = c(0, 3.25), main = "Notch-filtered Spectrogram of `cw047`")
+  spectro(flim = c(0.4, 0.8), tlim = c(0, 3.25), main = "Spectrogram of `cw047`")
 
 # Label the CW:
 text(x = 0.7, y = 0.5, labels = "E", col = "red", cex = 4, font = 4)
