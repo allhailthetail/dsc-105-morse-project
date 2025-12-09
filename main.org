@@ -7,7 +7,6 @@
 
 - Org tweaks:
   #+begin_src elisp
-  (org-display-inline-images t)
   (+org-pretty-mode t)
   #+end_src
 
@@ -102,6 +101,7 @@ filename samples duration sampleRate stereo  pcm bitdepth
   3. There are more samples per file than would be efficient to graph as individual points,
      Luckily, tuneR has a special plot function that handles this...
 #+end_quote
+
 ** Duration vs Samples
 #+begin_src R :file plots/general/samples-v-duration.png :results file graphics
 ggplot(basic_metadata, aes(duration, samples)) +
@@ -375,7 +375,25 @@ subset(detailed_analysis, detailed_analysis$rms >= 0.29 & detailed_analysis$rms 
 #+end_example
 
 * Step 3: Cleaning up the Audio With Seewave
-** Selecting the worst of the worst also having predictors:
+** RMS Amplitude as a predictor:
+It turned out that RMS Amplitude was useful to predict which files were free of noise and which weren't.
+
+#+begin_src R :results file graphics :file plots/general/rmsa_boxplot.png
+detailed_analysis$rms_amplitude %>%
+  boxplot(main = "RMS Amplitude of Samples")
+
+text(0.71, 0.4, labels = "Clean", col = "dark green", cex = 1.5)
+text(0.8, 0.22, labels = "Severe Noise", col = "dark red", cex = 1.5)
+#+end_src
+
+
+** Cleanest Files with Predictors:
+#+begin_src R
+detailed_analysis %>% filter(rms_amplitude > .4, prediction != "") %>%
+  select(filename, duration, zcr, prediction, rms_amplitude)
+#+end_src
+
+** Noisiest Files with Predictors:
 But, I want a dirty file which I've been given a prediction for...
 Tidyverse to the rescue...
 
@@ -396,7 +414,6 @@ noisy_with_prediction
 [[file:plots/waveforms/initial/cw149.png][cw149 Waveform]]
 
 Any of these look like excellent candidates!
-
 ** Applying spline denoising - Seewave:
 
 #+begin_src R :results silent

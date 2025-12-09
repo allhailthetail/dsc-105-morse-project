@@ -1,0 +1,122 @@
+#+TITLE: Morse Project Presentation Prep
+#+AUTHOR: Matthew Younger
+#+DATE: 2025-11-18
+
+#+STARTUP: indent overview hideblocks entitiespretty
+#+PROPERTY: header-args:elisp :results output
+#+PROPERTY: header-args:R :session *R* :results output
+#+PROPERTY: header-args:python :noweb yes :comments noweb :results output
+#+PROPERTY: header-args:cpp :noweb yes :comments noweb :results output
+#+PROPERTY: header-args:sh :results silent
+
+:ELISP-HELPERS:
+Org Customizations
+#+name: Emacs tweaks
+#+begin_src elisp
+(+org-pretty-mode t)
+(flyspell-mode 0)
+(org-mode-restart) ;; Ensures the headers get read if created from template.
+#+end_src
+
+Tangle =functions.org= for use in this project, also:
+#+name: tangle functions.org
+#+begin_src elisp
+(org-babel-tangle-file "../functions.org" "./presentation/R/project_functions.R")
+#+end_src
+
+These will be used to permanently hold the illustrations for the presentation.
+#+name: Create plots directories
+#+begin_src bash
+mkdir -p ./img
+#+end_src
+
+Adjusted to the subdir for the presentation:
+#+name: initialize R
+#+begin_src R
+# Get and set the working directory:
+paste0(Sys.getenv("MORSE_ROOT"), "presentation/") -> projectRoot
+setwd(projectRoot)
+#+end_src
+
+#+name: import dependencies
+#+begin_src R
+source("R/project_functions.R")
+library(tidyverse)
+library(seewave)
+library(tuneR)
+library(ggplot2)
+#+end_src
+
+Project Cleanup
+#+name: Project Cleanup Interactive
+#+begin_src elisp :results silent
+(defun +temp/cleanup-this-project ()
+  "Cleans up trivial/generated project files"
+  (interactive) ;; make this available with M-x
+  (+org/remove-result-blocks 0) ;; remove result blocks back to the beginning...
+  ;;(delete-directory project-dir t) ;; delete src directory
+  (delete-directory "R" t) ;; Delete R functions derived from one dir up.
+  (delete-directory "img" t)) ;; Delete the img folder
+  #+end_src
+
+Tangle all files automatically
+#+name: Tangle All Blocks
+#+begin_src elisp
+;; It's nice if when calling org-babel-execute-buffer, that includes tangling all my files...
+(org-babel-tangle) ;; tangle everything as a last step...
+#+end_src
+
+:END:
+
+* EDA - Characterizing the Data
+** Edge Cases
+As guest lecturer Brandon Smith emphasized, edge cases are important. Where are they?
+
+*** [[file:~/playground/morse-project/main.org::Cleanest Files with Predictors:][Cleanest]]
+#+begin_src R :results file graphics :file img/cw176_norm.png
+tuneR::readWave("../data/cw176.wav") %>%
+  tuneR::normalize() %>%
+  plot(main = "Original Waveform of `cw176`", xlim = c(0,1.25), col = "steelblue", ylab = "Amplitude")
+
+text(0.1, -0.5, label = "E", col = "red", cex = 4, font = 4)
+text(0.4, -0.5, label = "8", col = "red", cex = 4, font = 4)
+text(0.75, -0.5, label = "G", col = "red", cex = 4, font = 4)
+text(1.1, -0.5, label = "8", col = "red", cex = 4, font = 4)
+#+end_src
+
+*** [[file:~/playground/morse-project/main.org::Noisiest Files with Predictors:][Noisiest]]
+#+begin_src R :results file graphics :file img/cw047_norm.png
+tuneR::readWave("../data/cw047.wav") %>%
+  tuneR::normalize() %>%
+  plot(main = "Original Waveform of `cw047`", xlim = c(0,3.25), col = "steelblue", ylab = "Amplitude")
+#+end_src
+
+* Applying Seewave's Fourier Transform:
+#+begin_src R :results file graphics :file img/cw047_raw_spectro.png
+tuneR::readWave("../data/cw047.wav") %>%
+  wav_remove_NAs() %>%
+  tuneR::normalize() %>%
+  spectro(flim = c(0.4, 0.8), tlim = c(0, 3.25), main = "Notch-filtered Spectrogram of `cw047`")
+
+# Label the CW:
+text(x = 0.7, y = 0.5, labels = "E", col = "red", cex = 4, font = 4)
+text(x = 1.5, y = 0.5, labels = "Z", col = "red", cex = 4, font = 4)
+text(x = 2.5, y = 0.5, labels = "R", col = "red", cex = 4, font = 4)
+#+end_src
+
+* Applying the Filtering Script:
+Clearly, the notch filter I devised using TuneR and Seewave is highly effective...
+
+#+begin_src R :results file graphics :file img/cw047_filtered.png
+tuneR::readWave("../out/anf/cw047_anf.wav") %>%
+  tuneR::normalize() %>%
+  plot(main = "Original Waveform of `cw047`", xlim = c(0,3.25), col = "steelblue", ylab = "Amplitude")
+text(x = 0.7, y = -0.5, labels = "E", col = "red", cex = 4, font = 4)
+text(x = 1.5, y = -0.5, labels = "Z", col = "red", cex = 4, font = 4)
+text(x = 2.5, y = -0.5, labels = "R", col = "red", cex = 4, font = 4)
+#+end_src
+
+* Conclusion:
+There are then two approaches to understanding these audio files and approaching decoding them:
+1. We can use fourier transforms and image processing to predict thier contents
+2. Notch filtering can be applied (given the known or derived tone frequency) and traditional decoding methods can be used.
