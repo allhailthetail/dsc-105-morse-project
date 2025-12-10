@@ -1,8 +1,8 @@
 # A Data Science Approach to Decoding Morse Code
 ![Morse Code DSP Banner](img/readme-header.png)
 
-## Video Presentation
-<iframe width="560" height="315" src="https://www.youtube.com/embed/8777BKS3vvc?si=LTRYt-d4ZPbcQQ_c" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+## Project Summary
+[Link to Presentation](https://youtu.be/8777BKS3vvc?si=6DiJygh5fOpyXAL6)
 
 ### Introduction
 **Project Scope:** This research covers a semester project in Data Science focusing on Morse code, a topic inspired by a summer robotics project.
