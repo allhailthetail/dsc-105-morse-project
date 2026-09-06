@@ -3,23 +3,16 @@
 *.log
 tmp/
 
-# Project-specific Ignores:
-R/
+# Project-specific ignores: generated plots/datasets, not curated inputs
 plots/
-out/
-csv/
+datasets/generated/
 
-# R-specific
-.Rhistory
-
-# LaTeX Specific
-*.aux
-*.bbl
-*.bcf
-*.blg
-*.log
-*.out
-*.run.xml
-*.synctex.gz
-
-abstract.pdf
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+build/
+dist/

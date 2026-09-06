@@ -1,6 +1,10 @@
 # A Data Science Approach to Decoding Morse Code
 ![Morse Code DSP Banner](img/readme-header.png)
 
+## Current Implementation
+
+This project has moved on from the R/Org-mode workflow described below. It is now a Python project building a synthetic-data pipeline (humanized CW timing + noise/QSB mixing → mel-spectrogram) for training a CRNN (CNN + Bi-LSTM + CTC loss) to decode real hand-sent Morse, targeting deployment on a Raspberry Pi 4 with a cheap microphone. See [`CLAUDE.md`](CLAUDE.md) for the current structure and commands, and [`src/morse/models/README.md`](src/morse/models/README.md) for the model design rationale. The original R analysis and its outputs are preserved under [`legacy/archive/`](legacy/archive/); the sections below describe that original work as project history.
+
 ## Project Summary
 [Link to Presentation](https://youtu.be/8777BKS3vvc?si=6DiJygh5fOpyXAL6)
 
@@ -12,6 +16,8 @@
 **The Challenge:** Morse code is a human-centered protocol that is easy for people to learn but difficult for computers to decode because it lacks forward error correction and other features that ensure data integrity.
 
 ### Methodology and Tooling
+*(This section describes the environment used for the original R/Org-mode analysis, superseded by the Python migration noted above. The anti-notebook stance below carried over into the Python rewrite: `scripts/` are plain, diffable Python files, not notebooks.)*
+
 **Critique of Standard Tools:** The researcher argues that common tools like Jupyter Notebooks are "antagonistic" to version control due to metadata that registers changes even when none are made. Raw shell scripts were also rejected because they lack the ability to "tell a story" with the data.
 
 **Chosen Environment:**
