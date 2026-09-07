@@ -1,8 +1,8 @@
-# Model (placeholder — not implemented yet)
+# Model
 
-This package intentionally contains no model code yet. Building and training
-the model is near-future work, out of scope for the current data/preprocessing
-migration. This file records the target design so the decision isn't lost.
+Implemented in [`crnn.py`](crnn.py): `build_crnn()`, plus `ctc_loss()`/
+`greedy_decode()` helpers. Training itself lives in
+[`scripts/train.py`](../../../scripts/train.py), not here.
 
 ## Target architecture: CRNN + CTC
 
@@ -27,22 +27,36 @@ threshold/timing-based Morse decoders fail on real hand-sent CW:
   one-to-one, which is exactly the property needed when sender speed and
   spacing aren't fixed.
 
-## Planned shape (not yet implemented)
+## Implemented shape
 
-1. Input: `(time, n_mels)` log-mel spectrogram frames from
+1. Input: `(batch, time, n_mels)` log-mel spectrogram frames from
    [`morse.features.melspec`](../features/melspec.py) — the same function
    must be used at inference time to avoid a train/deploy preprocessing
    mismatch.
-2. A stack of Conv2D (or Conv1D-over-mel-bins) blocks for local
-   time-frequency feature extraction, with pooling along the frequency axis
-   only (preserving time resolution for the recurrent stage).
-3. Reshape/flatten the conv output into a time-major sequence.
-4. One or more bidirectional LSTM layers for temporal context.
-5. A dense layer + softmax over `VOCAB_SIZE` (see
-   [`morse.labels.vocab`](../labels/vocab.py): 36 characters + 1 CTC blank).
-6. CTC loss (`keras.losses` / `tf.nn.ctc_loss`) for training; CTC greedy or
-   beam-search decoding (`morse.labels.vocab.ctc_collapse` handles the
-   greedy case) for inference.
+2. A stack of Conv2D blocks (`build_crnn`'s `conv_filters`) for local
+   time-frequency feature extraction, pooling along the frequency axis
+   **only** — the time axis is never pooled/strided, so the model's output
+   time dimension always exactly equals its input time dimension. This is
+   relied on directly: the same `input_length` computed by
+   `morse.data.pipeline` is reused unchanged as the CTC output length.
+3. Reshape the conv output `(time, freq', channels)` into `(time, features)`.
+4. `num_lstm_layers` bidirectional LSTM layers (`lstm_units` wide) for
+   temporal context.
+5. A `Dense(vocab_size)` producing per-frame **logits** (no softmax — CTC
+   loss/decode consume raw logits) over `VOCAB_SIZE` (see
+   [`morse.labels.vocab`](../labels/vocab.py): 36 characters + 1 CTC blank,
+   blank at the *last* index).
+6. Training/inference use `keras.ops.ctc_loss`/`keras.ops.ctc_decode`
+   directly (via `ctc_loss()`/`greedy_decode()` in `crnn.py`), **not** the
+   high-level `keras.losses.CTC` class — that class hardcodes
+   `mask_index=0` and infers lengths by assuming the entire padded time axis
+   is valid, which breaks on variable-length padded batches. The lower-level
+   ops accept explicit `input_length`/`label_length` (from
+   `morse.data.pipeline`) and a configurable `mask_index=BLANK_INDEX`.
+
+Deliberately kept small (few conv filters, modest LSTM width) — this needs to
+run inference on a Raspberry Pi 4 CPU in real time, not just train well on a
+GPU. Don't grow it without checking Pi4 latency.
 
 ## Deployment target
 

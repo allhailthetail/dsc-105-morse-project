@@ -3,7 +3,7 @@
 
 ## Current Implementation
 
-This project has moved on from the R/Org-mode workflow described below. It is now a Python project building a synthetic-data pipeline (humanized CW timing + noise/QSB mixing → mel-spectrogram) for training a CRNN (CNN + Bi-LSTM + CTC loss) to decode real hand-sent Morse, targeting deployment on a Raspberry Pi 4 with a cheap microphone. See [`CLAUDE.md`](CLAUDE.md) for the current structure and commands, and [`src/morse/models/README.md`](src/morse/models/README.md) for the model design rationale. The original R analysis and its outputs are preserved under [`legacy/archive/`](legacy/archive/); the sections below describe that original work as project history.
+This project has moved on from the R/Org-mode workflow described below. It is now a Python project training a CRNN (CNN + Bi-LSTM + CTC loss) on synthetically generated CW audio (humanized timing + noise/QSB mixing → mel-spectrogram), evaluated against a held-out set of real hand-sent recordings, exported to TensorFlow Lite, and driving a real-time console decoder — targeting deployment on a Raspberry Pi 4 with a cheap microphone. See [`CLAUDE.md`](CLAUDE.md) for the current structure and commands, [`docs/HOWTO-generate-corpus.md`](docs/HOWTO-generate-corpus.md) for generating training data, [`src/morse/models/README.md`](src/morse/models/README.md) for the model design, and [`docs/future-work.md`](docs/future-work.md) for what's planned but not yet built (web UI, message logging, the Pi's TFT display). The original R analysis and its outputs are preserved under [`legacy/archive/`](legacy/archive/); the sections below describe that original work as project history.
 
 ## Project Summary
 [Link to Presentation](https://youtu.be/8777BKS3vvc?si=6DiJygh5fOpyXAL6)

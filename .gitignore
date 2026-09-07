@@ -3,9 +3,12 @@
 *.log
 tmp/
 
-# Project-specific ignores: generated plots/datasets, not curated inputs
+# Project-specific ignores: generated plots/datasets/models, not curated inputs
 plots/
-datasets/generated/
+datasets/
+checkpoints/
+logs/
+*.tflite
 
 # Python
 __pycache__/

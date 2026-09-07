@@ -7,4 +7,5 @@ pandas
 soundfile
 librosa
 matplotlib
+sounddevice
 pytest
