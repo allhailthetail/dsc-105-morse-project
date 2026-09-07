@@ -1,0 +1,11 @@
+# Core dependencies for the synthetic CW data generator, DSP utilities, and dataset tooling.
+# Deliberately does NOT include tensorflow/keras -- see requirements-ml.txt. Anyone generating
+# or inspecting data should not need to install the (heavy) ML training stack.
+numpy
+scipy
+pandas
+soundfile
+librosa
+matplotlib
+sounddevice
+pytest

@@ -1,0 +1,5 @@
+# Reserved for future CNN/CRNN training work (see src/morse/models/README.md).
+# NOT required for the synthetic data generator or DSP scripts in scripts/ -- only install
+# this when you're actually building/training the model.
+tensorflow[and-cuda]
+keras
